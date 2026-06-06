@@ -1,362 +1,626 @@
 <!DOCTYPE html>
 <html class="light" lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>WeCareBidar - Citizen Dashboard</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script id="tailwind-config">
-    tailwind.config = {
-        darkMode: "class",
-        theme: {
-            extend: {
-                "colors": {
-                    "inverse-primary": "#95d4ac",
-                    "primary-fixed-dim": "#95d4ac",
-                    "on-primary-fixed-variant": "#0f5132",
-                    "tertiary": "#735c00",
-                    "surface-dim": "#d3daef",
-                    "on-primary-fixed": "#002111",
-                    "surface-container-high": "#e1e8fd",
-                    "secondary-fixed-dim": "#c8c6c2",
-                    "on-secondary": "#ffffff",
-                    "on-primary": "#ffffff",
-                    "background": "#f9f9ff",
-                    "error-container": "#ffdad6",
-                    "surface-tint": "#2d6a48",
-                    "surface-container": "#e9edff",
-                    "on-primary-container": "#84c39b",
-                    "on-secondary-fixed": "#1c1c19",
-                    "surface-variant": "#dce2f7",
-                    "surface-container-highest": "#dce2f7",
-                    "primary-fixed": "#b0f1c7",
-                    "primary": "#003820",
-                    "on-error": "#ffffff",
-                    "secondary-fixed": "#e5e2dd",
-                    "on-error-container": "#93000a",
-                    "tertiary-fixed": "#ffe088",
-                    "error": "#ba1a1a",
-                    "surface": "#f9f9ff",
-                    "inverse-surface": "#293040",
-                    "on-tertiary-fixed-variant": "#574500",
-                    "on-secondary-fixed-variant": "#474743",
-                    "inverse-on-surface": "#edf0ff",
-                    "outline-variant": "#c0c9c0",
-                    "tertiary-fixed-dim": "#e9c349",
-                    "on-tertiary": "#ffffff",
-                    "on-secondary-container": "#656461",
-                    "on-surface": "#141b2b",
-                    "surface-bright": "#f9f9ff",
-                    "tertiary-container": "#cca730",
-                    "primary-container": "#0f5132",
-                    "on-tertiary-fixed": "#241a00",
-                    "surface-container-low": "#f1f3ff",
-                    "outline": "#707971",
-                    "surface-container-lowest": "#ffffff",
-                    "on-tertiary-container": "#4f3d00",
-                    "secondary-container": "#e5e2dd",
-                    "on-background": "#141b2b",
-                    "secondary": "#5f5e5b",
-                    "on-surface-variant": "#404942"
-                },
-                "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
-                },
-                "spacing": {
-                    "container-max": "1280px",
-                    "unit": "8px",
-                    "gutter": "32px",
-                    "margin-mobile": "20px",
-                    "margin-desktop": "64px",
-                    "section-gap": "120px"
-                },
-                "fontFamily": {
-                    "headline-md": ["Montserrat"],
-                    "display-lg": ["Montserrat"],
-                    "body-lg": ["Inter"],
-                    "stat-display": ["Montserrat"],
-                    "body-md": ["Inter"],
-                    "headline-lg": ["Montserrat"],
-                    "display-lg-mobile": ["Montserrat"],
-                    "label-caps": ["Montserrat"]
-                },
-                "fontSize": {
-                    "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "700" }],
-                    "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800" }],
-                    "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
-                    "stat-display": ["48px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "600" }],
-                    "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
-                    "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "700" }],
-                    "display-lg-mobile": ["40px", { "lineHeight": "1.2", "fontWeight": "800" }],
-                    "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }]
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>WeCareBidar - Environmental Revolution for Bidar</title>
+    <meta name="description" content="WeCareBidar — A youth-powered movement transforming Bidar through cleanliness, sustainability, and verifiable environmental action. Join the revolution today."/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#656461",
+                        "surface-variant": "#dce2f7",
+                        "tertiary": "#735c00",
+                        "on-tertiary-container": "#4f3d00",
+                        "tertiary-container": "#cca730",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c0c9c0",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "on-primary-container": "#84c39b",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#141b2b",
+                        "background": "#f9f9ff",
+                        "primary-fixed-dim": "#95d4ac",
+                        "on-surface-variant": "#404942",
+                        "surface-bright": "#f9f9ff",
+                        "secondary": "#5f5e5b",
+                        "inverse-on-surface": "#edf0ff",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "on-primary-fixed-variant": "#0f5132",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#2d6a48",
+                        "outline": "#707971",
+                        "surface-container": "#e9edff",
+                        "surface-container-high": "#e1e8fd",
+                        "surface-dim": "#d3daef",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#002111",
+                        "on-secondary-fixed-variant": "#474743",
+                        "surface-container-low": "#f1f3ff",
+                        "surface-container-highest": "#dce2f7",
+                        "secondary-container": "#e5e2dd",
+                        "primary": "#003820",
+                        "inverse-surface": "#293040",
+                        "primary-container": "#0f5132",
+                        "primary-fixed": "#b0f1c7",
+                        "secondary-fixed": "#e5e2dd",
+                        "surface": "#f9f9ff",
+                        "on-background": "#141b2b",
+                        "tertiary-fixed": "#ffe088",
+                        "inverse-primary": "#95d4ac",
+                        "secondary-fixed-dim": "#c8c6c2",
+                        "on-secondary-fixed": "#1c1c19"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "container-max": "1280px",
+                        "section-gap": "120px",
+                        "gutter": "32px",
+                        "unit": "8px",
+                        "margin-mobile": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "label-caps": ["Montserrat"],
+                        "stat-display": ["Montserrat"],
+                        "display-lg": ["Montserrat"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Montserrat"],
+                        "headline-lg": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "display-lg-mobile": ["40px", { "lineHeight": "1.2", "fontWeight": "800" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "stat-display": ["48px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "700" }]
+                    }
                 }
             }
         }
-    }
-  </script>
-  <style>
-    .glass-card {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(0, 56, 32, 0.1);
-    }
-    
-    .hero-gradient {
-        background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(249, 249, 255, 1));
-    }
+    </script>
 
-    /* Particle Animation Base */
-    .particle {
-        position: fixed;
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 0;
-        background: rgba(15, 81, 50, 0.15);
-        animation: float 20s infinite linear;
-    }
-
-    @keyframes float {
-        0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
-    }
-
-    /* Hover video play visual overlay and styling */
-    .feed-video-container video {
-        transition: transform 0.5s ease;
-    }
-    .feed-card:hover .feed-video-container video {
-        transform: scale(1.03);
-    }
-  </style>
-</head>
-<body class="bg-background text-on-background min-h-screen relative overflow-x-hidden antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
-
-  <!-- Particle Container -->
-  <div class="fixed inset-0 pointer-events-none z-0" id="particles"></div>
-
-  <!-- TopNavBar -->
-  <nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-primary/10 shadow-sm transition-all duration-300" id="navbar">
-    <div class="flex justify-between items-center px-margin-desktop py-4 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
-      <div class="font-headline-md text-headline-md font-bold text-primary tracking-tight">WeCareBidar</div>
-      
-      <!-- Desktop Navigation links -->
-      <div class="hidden md:flex gap-gutter items-center">
-        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="feed.html">Impact</a>
-        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="upload.html">Upload Action</a>
-        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="leaderboard.html">Leaderboard</a>
-        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="about.html">Manifesto</a>
-        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="profile.html">Profile</a>
-      </div>
-      
-      <!-- Desktop Logout trigger styled as 'Join The Revolution' -->
-      <button type="button" id="btnLogout" class="hidden md:block bg-primary text-on-primary font-headline-md text-body-md px-6 py-3 rounded-lg hover:bg-primary/90 transition-all shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)]">Log Out</button>
-      
-      <!-- Mobile Menu Button -->
-      <button class="md:hidden text-primary" id="mobileMenuBtn">
-        <span class="material-symbols-outlined text-3xl">menu</span>
-      </button>
-    </div>
-
-    <!-- Mobile Dropdown Menu -->
-    <div id="mobileMenu" class="hidden md:hidden border-t border-primary/10 bg-surface px-6 py-4 space-y-4 shadow-inner">
-      <div id="mobileUserHeader" class="hidden flex items-center gap-3 pb-3 border-b border-primary/5">
-        <img id="mobileUserAvatar" src="" class="w-10 h-10 rounded-full object-cover border border-primary/10" alt="Avatar">
-        <div>
-          <div id="mobileUserFullName" class="font-headline-md text-sm font-bold text-on-surface">Loading...</div>
-          <div id="mobileUserStatsCount" class="text-xs text-on-surface-variant">0 uploads verified</div>
-        </div>
-      </div>
-      <div class="flex flex-col gap-2 pb-2 border-b border-primary/5">
-        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="feed.html">Impact</a>
-        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="upload.html">Upload Action</a>
-        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="leaderboard.html">Leaderboard</a>
-        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="about.html">Manifesto</a>
-        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="profile.html">Profile</a>
-      </div>
-      <!-- User profile mobile buttons -->
-      <div class="flex gap-2">
-        <button type="button" id="btnLogoutMobile" class="flex-1 bg-error/10 text-error py-2 rounded-lg text-xs font-bold uppercase">Log Out</button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Main Content Canvas -->
-  <main class="relative z-10 pt-[100px] md:pt-[120px] pb-section-gap">
-    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
-
-      <!-- 1. Hero Profile Banner -->
-      <section class="relative rounded-2xl overflow-hidden mb-gutter shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
-        <div class="h-64 md:h-80 w-full bg-cover bg-center relative" data-alt="An expansive aerial drone shot of a lush, thriving green forest canopy bathed in soft morning sunlight. The vibrant emerald leaves contrast with a pristine, clear blue sky, evoking a sense of healthy environmental stewardship. The lighting is bright and modern, creating a fresh, optimistic mood perfectly suited for a premium eco-conscious brand aesthetic. High-resolution, cinematic quality." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWHU3tvLBdoUcNLkp2MbQt_dVKfBwqwwERa6H7duB5HsM9Oz_xwDxAJXk5XZ7XkjvERC9u24Vitxb_TzWP9hZQS32Z49Rpj-InlaBNy-zA7vJummJB4guUut_SxKnZyMW8EArF4tMVdGjtzHdHWdMOfAkUWbav4GyHDnmL_giNK9oku4M_TAHRwe97tsAv-hJwZFP1DQSWpE5d7IO-nHf6x63ZsLHKLAy78ITFMF29i1WqKvwjtlkSOj-eABCXVKE_R2ZD_5_pIOk');">
-          <div class="absolute inset-0 hero-gradient"></div>
-        </div>
-        <div class="glass-card -mt-20 relative mx-4 md:mx-8 mb-8 p-6 md:p-8 rounded-xl flex flex-col md:flex-row items-center md:items-end gap-6">
-          <div class="relative group" id="userHeader">
-            <img alt="Profile Picture" id="userAvatar" class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-surface shadow-lg object-cover" data-alt="A close-up portrait of a professional South Asian man with a warm, confident smile, outdoors in natural light. He is wearing a simple, sustainable linen shirt, embodying the persona of a dedicated environmental citizen. The lighting is soft and flattering, highlighting the Earth Beige and Forest Green tones in the blurred background. High-quality, modern, and engaging." src="">
-            <div id="btnEditProfile" class="absolute bottom-2 right-2 bg-primary-container text-on-primary-container w-8 h-8 rounded-full flex items-center justify-center border-2 border-surface shadow-sm cursor-pointer hover:bg-primary hover:text-on-primary transition-colors">
-              <span class="material-symbols-outlined text-sm">edit</span>
-            </div>
-          </div>
-          <div class="text-center md:text-left flex-grow flex-1">
-            <h1 class="font-headline-lg text-headline-lg text-on-surface mb-1" id="userFullName">Loading Rebel...</h1>
-            <div class="flex flex-col md:flex-row gap-2 md:gap-4 items-center md:items-start">
-              <span class="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
-                <span class="material-symbols-outlined text-[18px]">badge</span> <span id="userIdBadge">WCB-2026-XXXX</span>
-              </span>
-              <span class="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
-                <span class="material-symbols-outlined text-[18px]">check_circle</span> <span id="userStatsCount">0 uploads verified</span>
-              </span>
-              <span id="userLevelBadge" class="font-label-caps text-label-caps bg-tertiary-container/20 text-tertiary-container px-3 py-1 rounded-full border border-tertiary-container/30">
-                Eco Recruit (Level 1)
-              </span>
-            </div>
-          </div>
-          <div class="flex gap-4 w-full md:w-auto">
-            <button type="button" onclick="window.location.href='upload.html'" class="flex-1 md:flex-none bg-primary text-on-primary font-headline-md text-body-md px-6 py-3 rounded-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)]">
-              <span class="material-symbols-outlined">add_circle</span> Upload Action
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- 2. Impact Stats Section -->
-      <section class="py-6 mb-8" id="impact">
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
-          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300">
-            <span class="material-symbols-outlined text-4xl text-primary mb-3">cleaning_services</span>
-            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1" id="statActions">0</div>
-            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Cleanup Actions</div>
-          </div>
-          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300">
-            <span class="material-symbols-outlined text-4xl text-primary mb-3">groups</span>
-            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1" id="statRebels">0</div>
-            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Active Rebels</div>
-          </div>
-          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300">
-            <span class="material-symbols-outlined text-4xl text-primary mb-3">nature</span>
-            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1">10,000+</div>
-            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Trees Planted</div>
-          </div>
-          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300">
-            <span class="material-symbols-outlined text-4xl text-primary mb-3">recycling</span>
-            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1">8,500+</div>
-            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Kg Waste Recycled</div>
-          </div>
-          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300 col-span-2 md:col-span-1 border-tertiary-container/30 bg-tertiary-fixed/10">
-            <span class="material-symbols-outlined text-4xl text-primary mb-3">cloud_off</span>
-            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1" id="statStorage">0.0 MB</div>
-            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Storage Residue</div>
-          </div>
-        </div>
-      </section>
-      <!-- 3. Upload Section Promotion -->
-      <section id="uploadSection" class="py-12 mb-8 border-t border-b border-primary/5 bg-surface-container-low/30 rounded-3xl">
-        <div class="max-w-3xl mx-auto text-center p-8 md:p-12">
-          <span class="material-symbols-outlined text-5xl text-primary mb-4" style="font-variation-settings: 'FILL' 0;">rocket_launch</span>
-          <h2 class="font-headline-lg text-2xl md:text-3xl font-extrabold text-primary mb-3">Launch Submission Center</h2>
-          <p class="text-on-surface-variant text-sm max-w-lg mx-auto mb-6">
-            Ready to document your civic impact? Access our dedicated submission gateway to upload video clips, operation zone details, and field notes.
-          </p>
-          <a href="upload.html" class="inline-flex bg-primary text-on-primary font-headline-md text-body-md px-8 py-3.5 rounded-full hover:bg-primary/90 transition-all font-bold btn-primary-glow items-center gap-2">
-            Go to Submission Center <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </a>
-        </div>
-      </section>
-
-      <!-- 4. Live Feed Section -->
-      <section id="feedSection" class="py-12">
-        <div class="flex flex-col md:flex-row md:items-center justify-between mb-12">
-          <div>
-            <h2 class="font-headline-lg text-2xl md:text-3xl font-extrabold text-primary flex items-center gap-2">
-              <span class="material-symbols-outlined text-3xl">photo_camera_back</span>
-              Live Revolution Action Feed
-            </h2>
-            <p class="text-on-surface-variant text-sm mt-2">See what active Rebels are doing on the ground in Bidar.</p>
-          </div>
-          <div class="h-1 flex-1 bg-gradient-to-r from-primary/10 to-transparent ml-8 hidden md:block"></div>
-        </div>
-
-        <!-- Feed Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="feedGrid">
-          <!-- Dynamic Feed Cards Go Here -->
-          <div class="glass-card p-8 text-center col-span-full rounded-2xl">
-            <span class="material-symbols-outlined text-4xl text-primary/40 mb-2">eco</span>
-            <h4 class="font-headline-md text-headline-md text-primary">The Revolution is Spreading</h4>
-            <p class="text-on-surface-variant text-sm mt-2">No approved videos in the feed yet. Upload yours to start the movement!</p>
-          </div>
-        </div>
-      </section>
-
-    </div>
-  </main>
-
-  <!-- Toast Notification System -->
-  <div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-inverse-on-surface px-6 py-3 rounded-full shadow-lg flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-[110]" id="toast">
-    <span id="toastIcon" class="material-symbols-outlined text-xl text-primary-fixed">check_circle</span>
-    <span id="toastMessage" class="text-sm font-medium">Action completed successfully.</span>
-  </div>
-
-  <!-- Footer -->
-  <footer class="w-full py-16 bg-surface-container-lowest border-t border-outline-variant/30 relative z-20">
-    <div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop max-w-container-max mx-auto gap-gutter opacity-80 hover:opacity-100 transition-opacity">
-      <div class="text-headline-md font-headline-md text-primary font-bold">WeCareBidar</div>
-      <div class="font-body-md text-body-md text-secondary">© 2026 WeCareBidar. Zero Storage Footprint Mission.</div>
-      <div class="flex gap-6">
-        <a class="font-label-caps text-label-caps text-secondary hover:text-tertiary-container transition-colors duration-300" href="#">Privacy Policy</a>
-        <a class="font-label-caps text-label-caps text-secondary hover:text-tertiary-container transition-colors duration-300" href="#">Terms of Service</a>
-        <a class="font-label-caps text-label-caps text-secondary hover:text-tertiary-container transition-colors duration-300" href="#">Sustainability Statement</a>
-        <a class="font-label-caps text-label-caps text-secondary hover:text-tertiary-container transition-colors duration-300" href="contact.html">Contact</a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Interactive Scripts -->
-  <script>
-    // Simple Particle Generator
-    function createParticles() {
-        const container = document.getElementById('particles');
-        if (!container) return;
-        const particleCount = 15;
-
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.classList.add('particle');
-            
-            // Randomize properties
-            const size = Math.random() * 12 + 4; // 4px to 16px
-            const left = Math.random() * 98; // 0% to 98vw
-            const duration = Math.random() * 18 + 12; // 12s to 30s
-            const delay = Math.random() * 10; // 0s to 10s
-
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            particle.style.left = `${left}vw`;
-            particle.style.animationDuration = `${duration}s`;
-            particle.style.animationDelay = `-${delay}s`;
-
-            container.appendChild(particle);
+    <style>
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(249, 249, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 56, 32, 0.1);
         }
-    }
-    document.addEventListener('DOMContentLoaded', createParticles);
 
-    // Mobile Menu Toggle
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileMenu = document.getElementById('mobileMenu');
-    if (mobileMenuBtn && mobileMenu) {
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
+        /* Fade-up reveal animation */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Parallax hero background */
+        .parallax-bg {
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        /* Floating leaves */
+        .leaf {
+            position: fixed;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230f5132"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 7,11.5 7,11.5C7,11.5 5,7.25 17,8Z"/></svg>');
+            background-size: cover;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 1;
+        }
+        @keyframes float {
+            0%   { transform: translateY(0) rotate(0deg);   opacity: 0; }
+            10%  { opacity: 0.35; }
+            90%  { opacity: 0.35; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Feature card hover */
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 24px 60px rgba(0, 56, 32, 0.12);
+        }
+
+        /* Pulsing CTA glow */
+        @keyframes glow-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(15,81,50,0.4); }
+            50%       { box-shadow: 0 0 35px rgba(15,81,50,0.7); }
+        }
+        .cta-glow { animation: glow-pulse 2.5s ease-in-out infinite; }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #003820 0%, #0f5132 50%, #735c00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Mobile menu */
+        #mobileMenu {
+            transition: max-height 0.4s ease, opacity 0.3s ease;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        #mobileMenu.open {
+            max-height: 400px;
+            opacity: 1;
+        }
+
+        /* Scroll indicator */
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0) translateX(-50%); }
+            50%       { transform: translateY(8px) translateX(-50%); }
+        }
+        .bounce-slow { animation: bounce-slow 1.8s ease-in-out infinite; }
+    </style>
+</head>
+
+<body class="bg-background text-on-background font-body-md antialiased overflow-x-hidden selection:bg-primary-fixed selection:text-on-primary-fixed">
+
+    <!-- ── TOP NAV ──────────────────────────────────────── -->
+    <nav class="fixed top-0 w-full z-50 bg-surface/10 backdrop-blur-xl border-b border-primary/10 transition-all duration-300" id="navbar">
+        <div class="flex justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-4">
+
+            <!-- Logo -->
+            <a href="index.html" class="font-headline-lg text-headline-lg font-extrabold text-primary tracking-tight hover:opacity-80 transition-opacity">
+                🌿 WeCareBidar
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <div class="hidden md:flex gap-8 items-center">
+                <a href="#impact"     class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-300 hover:font-semibold">Impact</a>
+                <a href="#features"   class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-300 hover:font-semibold">Features</a>
+                <a href="#process"    class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-300 hover:font-semibold">How It Works</a>
+                <a href="feed.html"   class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-300 hover:font-semibold">Community</a>
+                <a href="about.html"  class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-300 hover:font-semibold">About</a>
+                <a href="leaderboard.html" class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-300 hover:font-semibold">Leaders</a>
+            </div>
+
+            <!-- Desktop CTA -->
+            <div class="hidden md:flex items-center gap-3">
+                <a href="auth.html" class="text-primary font-semibold font-body-md hover:text-primary-container transition-colors px-4 py-2">
+                    Sign In
+                </a>
+                <a href="auth.html" id="navJoinBtn" class="cta-glow bg-primary text-on-primary px-6 py-3 rounded-full font-body-md font-bold hover:bg-primary-container transition-all">
+                    Join The Revolution
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobileMenuBtn" class="md:hidden text-primary p-1" aria-label="Open menu">
+                <span class="material-symbols-outlined text-3xl" id="menuIcon">menu</span>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="md:hidden bg-surface/95 backdrop-blur-xl border-t border-primary/10">
+            <div class="flex flex-col px-margin-mobile py-4 gap-4">
+                <a href="#impact"     class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">Impact</a>
+                <a href="#features"   class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">Features</a>
+                <a href="#process"    class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">How It Works</a>
+                <a href="feed.html"   class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">Community</a>
+                <a href="about.html"  class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">About</a>
+                <a href="leaderboard.html" class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">Leaders</a>
+                <a href="auth.html"   class="w-full bg-primary text-on-primary text-center px-6 py-3 rounded-full font-body-md font-bold mt-2">
+                    Join The Revolution
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── HERO SECTION ─────────────────────────────────── -->
+    <section class="relative min-h-screen flex items-center justify-center pt-24 pb-16 overflow-hidden bg-surface-container-lowest">
+
+        <!-- Ambient blobs -->
+        <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-1/4 -right-1/4 w-[800px] h-[800px] bg-primary-fixed-dim/20 rounded-full blur-[120px]"></div>
+            <div class="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-tertiary-container/10 rounded-full blur-[100px]"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary-fixed/10 rounded-full blur-[80px]"></div>
+        </div>
+
+        <!-- Subtle hero background image -->
+        <div class="absolute inset-0 z-0 opacity-15 parallax-bg"
+             style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD3551D-6Y06lbnurlyBBEccgOlwuAYm7aHTaHKD0iYmVCzh5eE_V8fuspQcGwqnFtar5-a7P0r_ujTr91Lni8Tg9ZBabp7XcQpKHTqh8UdpvfScIUyJNttuNzt-13nrUl8lArlVvBKP11URkXWxHyKLGAnQTRZPrUYDsXY-usPXibcg1AqlR-Ka0D-6GjtGIzwoCVyBxz0t0BH6Sa8-QIPixn2jpysG96o322HK_cJdpJ47Cam3bIBvCaj_7hFePGD4fv1y3-kZ6o');">
+        </div>
+
+        <!-- Hero Content -->
+        <div class="relative z-10 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center">
+
+            <!-- Badge -->
+            <span class="inline-flex items-center gap-2 font-label-caps text-label-caps text-primary bg-primary-fixed/30 px-5 py-2.5 rounded-full mb-8 fade-up tracking-widest border border-primary/20 backdrop-blur-sm">
+                <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                BIDAR'S ENVIRONMENTAL REVOLUTION
+            </span>
+
+            <!-- Headline -->
+            <h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-6 fade-up max-w-4xl mx-auto drop-shadow-sm" style="transition-delay: 80ms;">
+                We Are Rebuilding Bidar,<br/>
+                <span class="gradient-text relative inline-block">
+                    One Action At A Time.
+                    <span class="absolute bottom-1 left-0 w-full h-3 bg-tertiary-container/25 -z-10 rounded-full"></span>
+                </span>
+            </h1>
+
+            <!-- Subheading -->
+            <p class="font-body-lg text-body-lg text-on-surface-variant mb-10 max-w-2xl mx-auto fade-up" style="transition-delay: 160ms;">
+                A youth-powered movement transforming Bidar through cleanliness, sustainability, and verifiable environmental action. Upload your mission. Earn recognition. Inspire change.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center fade-up" style="transition-delay: 240ms;">
+                <a href="auth.html" class="cta-glow bg-primary text-on-primary px-8 py-4 rounded-full font-body-md font-bold hover:bg-primary-container transition-all relative overflow-hidden group text-center">
+                    <span class="relative z-10 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1;">eco</span>
+                        Join The Revolution
+                    </span>
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out rounded-full"></div>
+                </a>
+                <a href="feed.html" class="glass-panel text-primary px-8 py-4 rounded-full font-body-md font-bold hover:bg-surface-variant transition-all flex items-center justify-center gap-2 group">
+                    Explore Actions
+                    <span class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform duration-200">arrow_forward</span>
+                </a>
+            </div>
+
+            <!-- Trust line -->
+            <p class="mt-8 font-label-caps text-label-caps text-outline tracking-widest fade-up" style="transition-delay: 320ms;">
+                1,250+ MISSIONS COMPLETED · 5,400+ REBELS · ZERO STORAGE FOOTPRINT
+            </p>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="bounce-slow absolute bottom-8 left-1/2 text-outline z-10">
+            <span class="material-symbols-outlined text-3xl">keyboard_arrow_down</span>
+        </div>
+    </section>
+
+    <!-- ── IMPACT STATS ──────────────────────────────────── -->
+    <section class="py-section-gap bg-surface relative z-20" id="impact">
+        <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+
+            <div class="text-center mb-16 fade-up">
+                <p class="font-label-caps text-label-caps text-tertiary tracking-widest mb-3 uppercase">Real Impact, Real Numbers</p>
+                <h2 class="font-headline-lg text-headline-lg text-primary">Every Action Counts</h2>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-unit md:gap-gutter fade-up">
+                <div class="text-center p-6 glass-panel rounded-2xl feature-card">
+                    <span class="material-symbols-outlined text-4xl text-tertiary-container mb-4 block" style="font-variation-settings:'FILL' 1;">cleaning_services</span>
+                    <div class="font-stat-display text-stat-display text-primary mb-2 counter" data-target="1250">0</div>
+                    <div class="font-label-caps text-label-caps text-on-surface-variant">Cleanup Actions</div>
+                </div>
+                <div class="text-center p-6 glass-panel rounded-2xl feature-card">
+                    <span class="material-symbols-outlined text-4xl text-tertiary-container mb-4 block" style="font-variation-settings:'FILL' 1;">groups</span>
+                    <div class="font-stat-display text-stat-display text-primary mb-2 counter" data-target="5400">0</div>
+                    <div class="font-label-caps text-label-caps text-on-surface-variant">Active Green Rebels</div>
+                </div>
+                <div class="text-center p-6 glass-panel rounded-2xl feature-card">
+                    <span class="material-symbols-outlined text-4xl text-tertiary-container mb-4 block" style="font-variation-settings:'FILL' 1;">nature</span>
+                    <div class="font-stat-display text-stat-display text-primary mb-2 counter" data-target="10000">0</div>
+                    <div class="font-label-caps text-label-caps text-on-surface-variant">Trees Planted</div>
+                </div>
+                <div class="text-center p-6 glass-panel rounded-2xl feature-card">
+                    <span class="material-symbols-outlined text-4xl text-tertiary-container mb-4 block" style="font-variation-settings:'FILL' 1;">recycling</span>
+                    <div class="font-stat-display text-stat-display text-primary mb-2 counter" data-target="8500">0</div>
+                    <div class="font-label-caps text-label-caps text-on-surface-variant">Kg Waste Recycled</div>
+                </div>
+                <div class="text-center p-6 glass-panel rounded-2xl feature-card col-span-2 md:col-span-1 bg-tertiary-fixed/10 border-tertiary-container/30">
+                    <span class="material-symbols-outlined text-4xl text-tertiary-container mb-4 block" style="font-variation-settings:'FILL' 1;">cloud_off</span>
+                    <div class="font-stat-display text-stat-display text-primary mb-2">0 <span class="text-2xl">MB</span></div>
+                    <div class="font-label-caps text-label-caps text-on-surface-variant">Storage Residue</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── FEATURES SECTION ──────────────────────────────── -->
+    <section class="py-section-gap bg-surface-container-low relative z-20" id="features">
+        <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+
+            <div class="text-center mb-16 fade-up">
+                <p class="font-label-caps text-label-caps text-tertiary tracking-widest mb-3 uppercase">Platform Features</p>
+                <h2 class="font-headline-lg text-headline-lg text-primary mb-4">Everything You Need to Make Change</h2>
+                <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto">From uploading your action to climbing the leaderboard — WeCareBidar has the tools to make your impact visible.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+
+                <!-- Feature 1 -->
+                <a href="upload.html" class="feature-card glass-panel rounded-2xl p-8 fade-up flex flex-col gap-4 group cursor-pointer">
+                    <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <span class="material-symbols-outlined text-3xl text-primary" style="font-variation-settings:'FILL' 1;">cloud_upload</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-primary">Upload Missions</h3>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Submit photos and videos of your environmental actions. Every upload is reviewed and verified by our team.</p>
+                    <span class="flex items-center gap-1 text-primary font-semibold text-sm mt-auto group-hover:gap-2 transition-all">
+                        Start Uploading <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </span>
+                </a>
+
+                <!-- Feature 2 -->
+                <a href="feed.html" class="feature-card glass-panel rounded-2xl p-8 fade-up flex flex-col gap-4 group cursor-pointer" style="transition-delay:100ms;">
+                    <div class="w-14 h-14 rounded-2xl bg-tertiary/10 flex items-center justify-center group-hover:bg-tertiary/20 transition-colors">
+                        <span class="material-symbols-outlined text-3xl text-tertiary" style="font-variation-settings:'FILL' 1;">photo_library</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-primary">Community Feed</h3>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Explore approved actions from citizens across Bidar. Get inspired by what others are doing for the environment.</p>
+                    <span class="flex items-center gap-1 text-primary font-semibold text-sm mt-auto group-hover:gap-2 transition-all">
+                        Browse Feed <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </span>
+                </a>
+
+                <!-- Feature 3 -->
+                <a href="leaderboard.html" class="feature-card glass-panel rounded-2xl p-8 fade-up flex flex-col gap-4 group cursor-pointer" style="transition-delay:200ms;">
+                    <div class="w-14 h-14 rounded-2xl bg-primary-container/20 flex items-center justify-center group-hover:bg-primary-container/30 transition-colors">
+                        <span class="material-symbols-outlined text-3xl text-primary-container" style="font-variation-settings:'FILL' 1;">leaderboard</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-primary">Leaderboard</h3>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Climb the ranks. See who's making the biggest difference in Bidar and compete to be the city's top eco-rebel.</p>
+                    <span class="flex items-center gap-1 text-primary font-semibold text-sm mt-auto group-hover:gap-2 transition-all">
+                        See Rankings <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── HOW IT WORKS ──────────────────────────────────── -->
+    <section class="py-section-gap bg-surface relative z-20" id="process">
+        <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+
+            <div class="text-center mb-16 fade-up">
+                <p class="font-label-caps text-label-caps text-tertiary tracking-widest mb-3 uppercase">Simple Process</p>
+                <h2 class="font-headline-lg text-headline-lg text-primary">How It Works</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter relative">
+                <!-- Connecting line (desktop only) -->
+                <div class="hidden md:block absolute top-10 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-primary/20 via-tertiary/40 to-primary/20 z-0"></div>
+
+                <!-- Step 1 -->
+                <div class="fade-up text-center relative z-10">
+                    <div class="w-20 h-20 rounded-full bg-primary text-on-primary flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">person_add</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-primary mb-3">Sign Up</h3>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Create your free account and join thousands of Bidar citizens already making a difference.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="fade-up text-center relative z-10" style="transition-delay:100ms;">
+                    <div class="w-20 h-20 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center mx-auto mb-6 shadow-lg shadow-tertiary/20">
+                        <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">photo_camera</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-primary mb-3">Take Action</h3>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Do something great for Bidar — clean a park, plant a tree, reduce waste — and capture it.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="fade-up text-center relative z-10" style="transition-delay:200ms;">
+                    <div class="w-20 h-20 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary-container/30">
+                        <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">upload</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-primary mb-3">Upload & Verify</h3>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Submit your photo/video. Our moderation team reviews and publishes it to the community feed.</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="fade-up text-center relative z-10" style="transition-delay:300ms;">
+                    <div class="w-20 h-20 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center mx-auto mb-6 shadow-lg shadow-tertiary/20">
+                        <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">military_tech</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-primary mb-3">Earn Recognition</h3>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Climb the leaderboard, earn badges, and inspire others to join the environmental revolution.</p>
+                </div>
+            </div>
+
+            <!-- CTA Banner -->
+            <div class="mt-20 glass-panel rounded-3xl p-12 text-center fade-up relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-primary-fixed/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 bg-tertiary-container/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="relative z-10">
+                    <h2 class="font-headline-lg text-headline-lg text-primary mb-4">Ready to Make Bidar Greener?</h2>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant mb-8 max-w-xl mx-auto">Join thousands of citizens who are already transforming Bidar one action at a time.</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="auth.html" class="cta-glow bg-primary text-on-primary px-10 py-4 rounded-full font-body-md font-bold hover:bg-primary-container transition-all inline-flex items-center gap-2 justify-center">
+                            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">eco</span>
+                            Get Started Free
+                        </a>
+                        <a href="about.html" class="border-2 border-primary text-primary px-10 py-4 rounded-full font-body-md font-bold hover:bg-primary hover:text-on-primary transition-all inline-flex items-center gap-2 justify-center">
+                            <span class="material-symbols-outlined">info</span>
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── FOOTER ────────────────────────────────────────── -->
+    <footer class="bg-inverse-surface w-full py-16 border-t border-outline-variant/10 text-on-surface-variant">
+        <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-12">
+
+                <!-- Brand -->
+                <div class="md:col-span-2">
+                    <div class="font-headline-md text-headline-md text-tertiary-container mb-4">🌿 WeCareBidar</div>
+                    <p class="font-body-md text-body-md max-w-sm mb-6 text-outline-variant leading-relaxed">
+                        A youth-powered environmental revolution in Bidar, Karnataka. Built for impact with zero storage footprint.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="feed.html"        class="text-xs bg-primary-container/30 text-primary-fixed-dim px-3 py-1.5 rounded-full hover:bg-primary-container/50 transition-colors">Community</a>
+                        <a href="leaderboard.html" class="text-xs bg-primary-container/30 text-primary-fixed-dim px-3 py-1.5 rounded-full hover:bg-primary-container/50 transition-colors">Leaderboard</a>
+                        <a href="upload.html"      class="text-xs bg-primary-container/30 text-primary-fixed-dim px-3 py-1.5 rounded-full hover:bg-primary-container/50 transition-colors">Upload</a>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div>
+                    <h4 class="font-label-caps text-label-caps text-primary-fixed-dim uppercase tracking-widest mb-4">Platform</h4>
+                    <ul class="space-y-3">
+                        <li><a href="dashboard.html"  class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Dashboard</a></li>
+                        <li><a href="feed.html"       class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Community Feed</a></li>
+                        <li><a href="upload.html"     class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Upload Action</a></li>
+                        <li><a href="leaderboard.html"class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Leaderboard</a></li>
+                        <li><a href="profile.html"    class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">My Profile</a></li>
+                    </ul>
+                </div>
+
+                <!-- Info -->
+                <div>
+                    <h4 class="font-label-caps text-label-caps text-primary-fixed-dim uppercase tracking-widest mb-4">Company</h4>
+                    <ul class="space-y-3">
+                        <li><a href="about.html"   class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">About Us</a></li>
+                        <li><a href="contact.html" class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Contact</a></li>
+                        <li><a href="auth.html"    class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Sign In / Register</a></li>
+                        <li><a href="analytics.html" class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Analytics</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-outline-variant/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="font-label-caps text-label-caps text-outline-variant text-center md:text-left">
+                    © 2024 WeCareBidar · Built for environmental stewardship · Bidar, Karnataka
+                </p>
+                <div class="flex gap-6">
+                    <a href="#" class="text-outline-variant hover:text-tertiary transition-colors font-body-md text-sm">Privacy Policy</a>
+                    <a href="#" class="text-outline-variant hover:text-tertiary transition-colors font-body-md text-sm">Terms of Service</a>
+                    <a href="about.html" class="text-tertiary-container font-bold hover:text-tertiary transition-all font-body-md text-sm">Sustainability Statement</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ── Intersection Observer for fade-up animations ──
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    if (entry.target.querySelector('.counter')) {
+                        animateCounters(entry.target);
+                    }
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { root: null, rootMargin: '0px', threshold: 0.1 });
+
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+        // ── Animated number counters ──
+        function animateCounters(parent) {
+            parent.querySelectorAll('.counter').forEach(counter => {
+                const target  = +counter.getAttribute('data-target');
+                const dur     = 2000;
+                const step    = target / (dur / 16);
+                let current   = 0;
+                const tick = () => {
+                    current += step;
+                    if (current < target) {
+                        counter.textContent = Math.ceil(current).toLocaleString();
+                        requestAnimationFrame(tick);
+                    } else {
+                        counter.textContent = target.toLocaleString() + '+';
+                    }
+                };
+                requestAnimationFrame(tick);
+            });
+        }
+
+        // ── Floating leaves ──
+        function createLeaves() {
+            for (let i = 0; i < 12; i++) {
+                const leaf = document.createElement('div');
+                const size = Math.random() * 20 + 16;
+                leaf.className = 'leaf';
+                leaf.style.cssText = `
+                    width:${size}px; height:${size}px;
+                    left:${Math.random() * 100}vw;
+                    bottom:-60px;
+                    animation: float ${Math.random() * 12 + 10}s linear infinite;
+                    animation-delay: ${Math.random() * 12}s;
+                `;
+                document.body.appendChild(leaf);
+            }
+        }
+        createLeaves();
+
+        // ── Navbar scroll effect ──
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 60) {
+                nav.classList.add('shadow-lg', 'bg-surface/90');
+                nav.classList.remove('bg-surface/10');
+            } else {
+                nav.classList.remove('shadow-lg', 'bg-surface/90');
+                nav.classList.add('bg-surface/10');
+            }
+        }, { passive: true });
+
+        // ── Mobile menu toggle ──
+        const menuBtn  = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuIcon = document.getElementById('menuIcon');
+
+        menuBtn.addEventListener('click', () => {
+            const isOpen = mobileMenu.classList.toggle('open');
+            menuIcon.textContent = isOpen ? 'close' : 'menu';
         });
-    }
-  </script>
-  <script src="app.js"></script>
+
+        // Close mobile menu when a link is clicked
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+                menuIcon.textContent = 'menu';
+            });
+        });
+
+        // ── Smooth scroll for anchor links ──
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', e => {
+                const target = document.querySelector(anchor.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
