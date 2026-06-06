@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>WeCareBidar - Citizen Dashboard</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                "colors": {
+                    "inverse-primary": "#95d4ac",
+                    "primary-fixed-dim": "#95d4ac",
+                    "on-primary-fixed-variant": "#0f5132",
+                    "tertiary": "#735c00",
+                    "surface-dim": "#d3daef",
+                    "on-primary-fixed": "#002111",
+                    "surface-container-high": "#e1e8fd",
+                    "secondary-fixed-dim": "#c8c6c2",
+                    "on-secondary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "background": "#f9f9ff",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#2d6a48",
+                    "surface-container": "#e9edff",
+                    "on-primary-container": "#84c39b",
+                    "on-secondary-fixed": "#1c1c19",
+                    "surface-variant": "#dce2f7",
+                    "surface-container-highest": "#dce2f7",
+                    "primary-fixed": "#b0f1c7",
+                    "primary": "#003820",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#e5e2dd",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#ffe088",
+                    "error": "#ba1a1a",
+                    "surface": "#f9f9ff",
+                    "inverse-surface": "#293040",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "on-secondary-fixed-variant": "#474743",
+                    "inverse-on-surface": "#edf0ff",
+                    "outline-variant": "#c0c9c0",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#656461",
+                    "on-surface": "#141b2b",
+                    "surface-bright": "#f9f9ff",
+                    "tertiary-container": "#cca730",
+                    "primary-container": "#0f5132",
+                    "on-tertiary-fixed": "#241a00",
+                    "surface-container-low": "#f1f3ff",
+                    "outline": "#707971",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#4f3d00",
+                    "secondary-container": "#e5e2dd",
+                    "on-background": "#141b2b",
+                    "secondary": "#5f5e5b",
+                    "on-surface-variant": "#404942"
+                },
+                "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+                },
+                "spacing": {
+                    "container-max": "1280px",
+                    "unit": "8px",
+                    "gutter": "32px",
+                    "margin-mobile": "20px",
+                    "margin-desktop": "64px",
+                    "section-gap": "120px"
+                },
+                "fontFamily": {
+                    "headline-md": ["Montserrat"],
+                    "display-lg": ["Montserrat"],
+                    "body-lg": ["Inter"],
+                    "stat-display": ["Montserrat"],
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Montserrat"],
+                    "display-lg-mobile": ["Montserrat"],
+                    "label-caps": ["Montserrat"]
+                },
+                "fontSize": {
+                    "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "700" }],
+                    "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                    "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                    "stat-display": ["48px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                    "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                    "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                    "display-lg-mobile": ["40px", { "lineHeight": "1.2", "fontWeight": "800" }],
+                    "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }]
+                }
+            }
+        }
+    }
+  </script>
+  <style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 56, 32, 0.1);
+    }
+    
+    .hero-gradient {
+        background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(249, 249, 255, 1));
+    }
+
+    /* Particle Animation Base */
+    .particle {
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        background: rgba(15, 81, 50, 0.15);
+        animation: float 20s infinite linear;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+    }
+
+    /* Hover video play visual overlay and styling */
+    .feed-video-container video {
+        transition: transform 0.5s ease;
+    }
+    .feed-card:hover .feed-video-container video {
+        transform: scale(1.03);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen relative overflow-x-hidden antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+
+  <!-- Particle Container -->
+  <div class="fixed inset-0 pointer-events-none z-0" id="particles"></div>
+
+  <!-- TopNavBar -->
+  <nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-primary/10 shadow-sm transition-all duration-300" id="navbar">
+    <div class="flex justify-between items-center px-margin-desktop py-4 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+      <div class="font-headline-md text-headline-md font-bold text-primary tracking-tight">WeCareBidar</div>
+      
+      <!-- Desktop Navigation links -->
+      <div class="hidden md:flex gap-gutter items-center">
+        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="feed.html">Impact</a>
+        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="upload.html">Upload Action</a>
+        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="leaderboard.html">Leaderboard</a>
+        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="about.html">Manifesto</a>
+        <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="profile.html">Profile</a>
+      </div>
+      
+      <!-- Desktop Logout trigger styled as 'Join The Revolution' -->
+      <button type="button" id="btnLogout" class="hidden md:block bg-primary text-on-primary font-headline-md text-body-md px-6 py-3 rounded-lg hover:bg-primary/90 transition-all shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)]">Log Out</button>
+      
+      <!-- Mobile Menu Button -->
+      <button class="md:hidden text-primary" id="mobileMenuBtn">
+        <span class="material-symbols-outlined text-3xl">menu</span>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobileMenu" class="hidden md:hidden border-t border-primary/10 bg-surface px-6 py-4 space-y-4 shadow-inner">
+      <div id="mobileUserHeader" class="hidden flex items-center gap-3 pb-3 border-b border-primary/5">
+        <img id="mobileUserAvatar" src="" class="w-10 h-10 rounded-full object-cover border border-primary/10" alt="Avatar">
+        <div>
+          <div id="mobileUserFullName" class="font-headline-md text-sm font-bold text-on-surface">Loading...</div>
+          <div id="mobileUserStatsCount" class="text-xs text-on-surface-variant">0 uploads verified</div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2 pb-2 border-b border-primary/5">
+        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="feed.html">Impact</a>
+        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="upload.html">Upload Action</a>
+        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="leaderboard.html">Leaderboard</a>
+        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="about.html">Manifesto</a>
+        <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="profile.html">Profile</a>
+      </div>
+      <!-- User profile mobile buttons -->
+      <div class="flex gap-2">
+        <button type="button" id="btnLogoutMobile" class="flex-1 bg-error/10 text-error py-2 rounded-lg text-xs font-bold uppercase">Log Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Canvas -->
+  <main class="relative z-10 pt-[100px] md:pt-[120px] pb-section-gap">
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+
+      <!-- 1. Hero Profile Banner -->
+      <section class="relative rounded-2xl overflow-hidden mb-gutter shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+        <div class="h-64 md:h-80 w-full bg-cover bg-center relative" data-alt="An expansive aerial drone shot of a lush, thriving green forest canopy bathed in soft morning sunlight. The vibrant emerald leaves contrast with a pristine, clear blue sky, evoking a sense of healthy environmental stewardship. The lighting is bright and modern, creating a fresh, optimistic mood perfectly suited for a premium eco-conscious brand aesthetic. High-resolution, cinematic quality." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWHU3tvLBdoUcNLkp2MbQt_dVKfBwqwwERa6H7duB5HsM9Oz_xwDxAJXk5XZ7XkjvERC9u24Vitxb_TzWP9hZQS32Z49Rpj-InlaBNy-zA7vJummJB4guUut_SxKnZyMW8EArF4tMVdGjtzHdHWdMOfAkUWbav4GyHDnmL_giNK9oku4M_TAHRwe97tsAv-hJwZFP1DQSWpE5d7IO-nHf6x63ZsLHKLAy78ITFMF29i1WqKvwjtlkSOj-eABCXVKE_R2ZD_5_pIOk');">
+          <div class="absolute inset-0 hero-gradient"></div>
+        </div>
+        <div class="glass-card -mt-20 relative mx-4 md:mx-8 mb-8 p-6 md:p-8 rounded-xl flex flex-col md:flex-row items-center md:items-end gap-6">
+          <div class="relative group" id="userHeader">
+            <img alt="Profile Picture" id="userAvatar" class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-surface shadow-lg object-cover" data-alt="A close-up portrait of a professional South Asian man with a warm, confident smile, outdoors in natural light. He is wearing a simple, sustainable linen shirt, embodying the persona of a dedicated environmental citizen. The lighting is soft and flattering, highlighting the Earth Beige and Forest Green tones in the blurred background. High-quality, modern, and engaging." src="">
+            <div id="btnEditProfile" class="absolute bottom-2 right-2 bg-primary-container text-on-primary-container w-8 h-8 rounded-full flex items-center justify-center border-2 border-surface shadow-sm cursor-pointer hover:bg-primary hover:text-on-primary transition-colors">
+              <span class="material-symbols-outlined text-sm">edit</span>
+            </div>
+          </div>
+          <div class="text-center md:text-left flex-grow flex-1">
+            <h1 class="font-headline-lg text-headline-lg text-on-surface mb-1" id="userFullName">Loading Rebel...</h1>
+            <div class="flex flex-col md:flex-row gap-2 md:gap-4 items-center md:items-start">
+              <span class="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
+                <span class="material-symbols-outlined text-[18px]">badge</span> <span id="userIdBadge">WCB-2026-XXXX</span>
+              </span>
+              <span class="font-body-md text-body-md text-on-surface-variant flex items-center gap-1">
+                <span class="material-symbols-outlined text-[18px]">check_circle</span> <span id="userStatsCount">0 uploads verified</span>
+              </span>
+              <span id="userLevelBadge" class="font-label-caps text-label-caps bg-tertiary-container/20 text-tertiary-container px-3 py-1 rounded-full border border-tertiary-container/30">
+                Eco Recruit (Level 1)
+              </span>
+            </div>
+          </div>
+          <div class="flex gap-4 w-full md:w-auto">
+            <button type="button" onclick="window.location.href='upload.html'" class="flex-1 md:flex-none bg-primary text-on-primary font-headline-md text-body-md px-6 py-3 rounded-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)]">
+              <span class="material-symbols-outlined">add_circle</span> Upload Action
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Impact Stats Section -->
+      <section class="py-6 mb-8" id="impact">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300">
+            <span class="material-symbols-outlined text-4xl text-primary mb-3">cleaning_services</span>
+            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1" id="statActions">0</div>
+            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Cleanup Actions</div>
+          </div>
+          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300">
+            <span class="material-symbols-outlined text-4xl text-primary mb-3">groups</span>
+            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1" id="statRebels">0</div>
+            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Active Rebels</div>
+          </div>
+          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300">
+            <span class="material-symbols-outlined text-4xl text-primary mb-3">nature</span>
+            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1">10,000+</div>
+            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Trees Planted</div>
+          </div>
+          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300">
+            <span class="material-symbols-outlined text-4xl text-primary mb-3">recycling</span>
+            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1">8,500+</div>
+            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Kg Waste Recycled</div>
+          </div>
+          <div class="text-center p-6 glass-card rounded-2xl hover:-translate-y-1 transition-all duration-300 col-span-2 md:col-span-1 border-tertiary-container/30 bg-tertiary-fixed/10">
+            <span class="material-symbols-outlined text-4xl text-primary mb-3">cloud_off</span>
+            <div class="font-stat-display text-4xl text-primary font-extrabold mb-1" id="statStorage">0.0 MB</div>
+            <div class="font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant">Storage Residue</div>
+          </div>
+        </div>
+      </section>
+      <!-- 3. Upload Section Promotion -->
+      <section id="uploadSection" class="py-12 mb-8 border-t border-b border-primary/5 bg-surface-container-low/30 rounded-3xl">
+        <div class="max-w-3xl mx-auto text-center p-8 md:p-12">
+          <span class="material-symbols-outlined text-5xl text-primary mb-4" style="font-variation-settings: 'FILL' 0;">rocket_launch</span>
+          <h2 class="font-headline-lg text-2xl md:text-3xl font-extrabold text-primary mb-3">Launch Submission Center</h2>
+          <p class="text-on-surface-variant text-sm max-w-lg mx-auto mb-6">
+            Ready to document your civic impact? Access our dedicated submission gateway to upload video clips, operation zone details, and field notes.
+          </p>
+          <a href="upload.html" class="inline-flex bg-primary text-on-primary font-headline-md text-body-md px-8 py-3.5 rounded-full hover:bg-primary/90 transition-all font-bold btn-primary-glow items-center gap-2">
+            Go to Submission Center <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- 4. Live Feed Section -->
+      <section id="feedSection" class="py-12">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-12">
+          <div>
+            <h2 class="font-headline-lg text-2xl md:text-3xl font-extrabold text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-3xl">photo_camera_back</span>
+              Live Revolution Action Feed
+            </h2>
+            <p class="text-on-surface-variant text-sm mt-2">See what active Rebels are doing on the ground in Bidar.</p>
+          </div>
+          <div class="h-1 flex-1 bg-gradient-to-r from-primary/10 to-transparent ml-8 hidden md:block"></div>
+        </div>
+
+        <!-- Feed Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="feedGrid">
+          <!-- Dynamic Feed Cards Go Here -->
+          <div class="glass-card p-8 text-center col-span-full rounded-2xl">
+            <span class="material-symbols-outlined text-4xl text-primary/40 mb-2">eco</span>
+            <h4 class="font-headline-md text-headline-md text-primary">The Revolution is Spreading</h4>
+            <p class="text-on-surface-variant text-sm mt-2">No approved videos in the feed yet. Upload yours to start the movement!</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Toast Notification System -->
+  <div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-inverse-on-surface px-6 py-3 rounded-full shadow-lg flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-[110]" id="toast">
+    <span id="toastIcon" class="material-symbols-outlined text-xl text-primary-fixed">check_circle</span>
+    <span id="toastMessage" class="text-sm font-medium">Action completed successfully.</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="w-full py-16 bg-surface-container-lowest border-t border-outline-variant/30 relative z-20">
+    <div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop max-w-container-max mx-auto gap-gutter opacity-80 hover:opacity-100 transition-opacity">
+      <div class="text-headline-md font-headline-md text-primary font-bold">WeCareBidar</div>
+      <div class="font-body-md text-body-md text-secondary">© 2026 WeCareBidar. Zero Storage Footprint Mission.</div>
+      <div class="flex gap-6">
+        <a class="font-label-caps text-label-caps text-secondary hover:text-tertiary-container transition-colors duration-300" href="#">Privacy Policy</a>
+        <a class="font-label-caps text-label-caps text-secondary hover:text-tertiary-container transition-colors duration-300" href="#">Terms of Service</a>
+        <a class="font-label-caps text-label-caps text-secondary hover:text-tertiary-container transition-colors duration-300" href="#">Sustainability Statement</a>
+        <a class="font-label-caps text-label-caps text-secondary hover:text-tertiary-container transition-colors duration-300" href="contact.html">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive Scripts -->
+  <script>
+    // Simple Particle Generator
+    function createParticles() {
+        const container = document.getElementById('particles');
+        if (!container) return;
+        const particleCount = 15;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Randomize properties
+            const size = Math.random() * 12 + 4; // 4px to 16px
+            const left = Math.random() * 98; // 0% to 98vw
+            const duration = Math.random() * 18 + 12; // 12s to 30s
+            const delay = Math.random() * 10; // 0s to 10s
+
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${left}vw`;
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `-${delay}s`;
+
+            container.appendChild(particle);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', createParticles);
+
+    // Mobile Menu Toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

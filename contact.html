@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Contact Us - ECO-COMMAND</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Montserrat:wght@600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f9f9ff",
+                        "surface-container-highest": "#dce2f7",
+                        "surface-container-high": "#e1e8fd",
+                        "inverse-surface": "#293040",
+                        "surface-tint": "#2d6a48",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-primary-container": "#84c39b",
+                        "tertiary-container": "#cca730",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-container": "#0f5132",
+                        "primary-fixed-dim": "#95d4ac",
+                        "surface-container": "#e9edff",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#404942",
+                        "on-primary-fixed-variant": "#0f5132",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#c8c6c2",
+                        "background": "#f9f9ff",
+                        "secondary-container": "#e5e2dd",
+                        "on-background": "#141b2b",
+                        "on-tertiary-container": "#4f3d00",
+                        "primary": "#003820",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c0c9c0",
+                        "on-secondary-fixed": "#1c1c19",
+                        "outline": "#707971",
+                        "secondary-fixed": "#e5e2dd",
+                        "surface-variant": "#dce2f7",
+                        "secondary": "#5f5e5b",
+                        "inverse-primary": "#95d4ac",
+                        "tertiary-fixed": "#ffe088",
+                        "surface": "#f9f9ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "surface-dim": "#d3daef",
+                        "on-secondary-container": "#656461",
+                        "on-error": "#ffffff",
+                        "tertiary": "#735c00",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "on-primary-fixed": "#002111",
+                        "primary-fixed": "#b0f1c7",
+                        "on-secondary-fixed-variant": "#474743",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#141b2b",
+                        "on-tertiary-fixed-variant": "#574500"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "margin-mobile": "20px",
+                        "unit": "8px",
+                        "section-gap": "120px",
+                        "gutter": "32px",
+                        "container-max": "1280px",
+                        "margin-desktop": "64px"
+                    },
+                    fontFamily: {
+                        "display-lg": ["Montserrat"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "stat-display": ["Montserrat"],
+                        "label-caps": ["Montserrat"]
+                    },
+                    fontSize: {
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "display-lg-mobile": ["40px", { "lineHeight": "1.2", "fontWeight": "800" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "700" }],
+                        "stat-display": ["48px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 56, 32, 0.1);
+        }
+        .hero-overlay {
+            background: linear-gradient(180deg, rgba(0, 56, 32, 0.4) 0%, rgba(20, 27, 43, 0.8) 100%);
+        }
+        /* Floating leaf particles */
+        .particle {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            background: rgba(15, 81, 50, 0.08);
+            animation: float 20s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased selection:bg-primary-fixed selection:text-on-primary-fixed overflow-x-hidden">
+<!-- Sandbox Mode Indicator Banner -->
+<div class="fixed top-20 md:top-0 left-0 w-full z-[60] bg-amber-500 text-amber-950 font-semibold text-xs py-2 px-6 text-center border-b border-amber-600/30 shadow-sm transition-all duration-300" id="sandboxBanner" style="display: none;">
+    ⚠️ Running in <strong>Developer Sandbox Mode</strong> (No live SMS OTP cost. RLS bypassed via sandbox access keys).
+</div>
+
+<!-- Atmospheric Particles -->
+<div class="fixed inset-0 pointer-events-none z-0" id="particles"></div>
+
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-20 bg-primary dark:bg-primary backdrop-blur-md bg-opacity-80 border-b border-primary-container md:flex hidden" style="box-shadow: 0px 20px 50px rgba(0,0,0,0.08);">
+<div class="flex items-center gap-gutter">
+<span class="text-headline-md font-headline-md font-black tracking-tight text-on-primary">ECO-COMMAND</span>
+<nav class="flex gap-gutter">
+<a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-on-primary hover:bg-primary-container transition-colors duration-200 px-3 py-2 rounded" href="index.html">Home</a>
+<a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-on-primary hover:bg-primary-container transition-colors duration-200 px-3 py-2 rounded" href="feed.html">Feed</a>
+<a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-on-primary hover:bg-primary-container transition-colors duration-200 px-3 py-2 rounded" href="leaderboard.html">Leaderboard</a>
+<a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-on-primary hover:bg-primary-container transition-colors duration-200 px-3 py-2 rounded" href="about.html">About</a>
+<a class="font-label-caps text-label-caps text-on-primary border-b-2 border-primary-fixed pb-1 hover:bg-primary-container transition-colors duration-200 px-3 py-2 rounded scale-98 transition-transform animate-pulse" href="contact.html">Contact</a>
+</nav>
+</div>
+<div class="flex items-center gap-unit">
+<button id="btnHeaderNotifications" class="p-2 text-primary-fixed-dim hover:text-on-primary hover:bg-primary-container rounded transition-colors duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button id="btnHeaderSettings" class="p-2 text-primary-fixed-dim hover:text-on-primary hover:bg-primary-container rounded transition-colors duration-200">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button id="btnLogout" class="p-2 text-primary-fixed-dim hover:text-on-primary hover:bg-primary-container rounded transition-colors duration-200">
+<span class="material-symbols-outlined">logout</span>
+</button>
+<img id="headerUserAvatar" alt="User Profile Avatar" class="w-10 h-10 rounded-full border border-primary-fixed ml-unit object-cover" src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest"/>
+</div>
+</header>
+
+<!-- SideNavBar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 bg-inverse-surface border-t border-outline-variant pb-safe flex justify-around p-4 shadow-2xl bg-opacity-95 backdrop-blur-xl">
+<a class="flex flex-col items-center text-surface-variant p-2 rounded-lg hover:bg-surface-variant/10" href="index.html">
+<span class="material-symbols-outlined mb-1">home</span>
+</a>
+<a class="flex flex-col items-center text-surface-variant p-2 rounded-lg hover:bg-surface-variant/10" href="feed.html">
+<span class="material-symbols-outlined mb-1">explore</span>
+</a>
+<a class="flex flex-col items-center bg-primary-container text-on-primary-container p-2 rounded-lg font-bold" href="contact.html">
+<span class="material-symbols-outlined mb-1">contact_support</span>
+</a>
+</nav>
+
+<main class="pt-20 md:pt-20 pb-24 md:pb-0">
+<!-- Hero Section -->
+<section class="relative min-h-[500px] flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 z-0 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCUbtREcipZ7O44h9onV27HIQHlkCPgKk2Er9UHU9JaKNJZFoGaPWQp-gV8cJwZY-KPd9QwMqlmVrclTDuQWOBnPBPMc5nTeuv3eEi8KHmv8qClbPVBhD_KhYvrRLRqIB9pHY2GP4REuNnaCjx8a1-ds2TCJ5HWfGiuuhbJ4yYmA3tGHZ5YzjJT_pppfsyqD-k2jIWIasrn0fd-V9EOOhlajtTFyk-cXYrdHK8Lap2sw0bBjBhmw5SMtX54mJhrWs-Qn48Vh4RXCrE');">
+<div class="absolute inset-0 hero-overlay"></div>
+</div>
+<div class="relative z-10 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center">
+<span class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-on-primary border-primary-fixed/30 mb-8 mx-auto font-label-caps text-label-caps uppercase tracking-widest shadow-[0_4px_20px_rgba(0,0,0,0.1)]">
+<span class="material-symbols-outlined text-primary-fixed text-sm" style="font-variation-settings: 'FILL' 1;">handshake</span>
+                    Community Partnership Center
+                </span>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-primary mb-6 drop-shadow-lg max-w-4xl mx-auto leading-tight">
+                    Let's Build A Greener Bidar Together.
+                </h1>
+<p class="font-body-lg text-body-lg text-surface-container-highest max-w-2xl mx-auto drop-shadow">
+                    Whether you're looking to spearhead a new initiative, volunteer for active projects, or forge a strategic partnership, our support team is ready to collaborate.
+                </p>
+</div>
+</section>
+
+<!-- Main Content Area -->
+<section class="relative z-20 -mt-20 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mb-section-gap">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Premium Support Card -->
+<div class="lg:col-span-8 glass-panel rounded-xl p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+<div class="flex items-center gap-4 mb-8 pb-6 border-b border-outline-variant/20">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined text-[28px]">support_agent</span>
+</div>
+<div class="text-left">
+<h2 class="font-headline-md text-headline-md text-primary mb-1">Direct Support Protocol</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Secure, direct access to our mission coordinators.</p>
+</div>
+</div>
+<form id="contactForm" class="space-y-8 text-left">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Category Selection -->
+<div class="md:col-span-2">
+<label class="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-4">Nature of Inquiry</label>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<label class="relative flex cursor-pointer rounded-lg border border-outline-variant bg-surface p-4 shadow-sm focus-within:ring-2 focus-within:ring-primary-fixed hover:bg-surface-container-low transition-colors group">
+<input checked="" class="peer sr-only" name="inquiry_type" type="radio" value="partnership"/>
+<div class="flex items-center gap-3 w-full">
+<span class="material-symbols-outlined text-outline peer-checked:text-primary-container group-hover:text-primary transition-colors">handshake</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface peer-checked:text-primary">Partnership Request</span>
+</div>
+<div class="absolute inset-0 border-2 border-transparent peer-checked:border-primary-container rounded-lg pointer-events-none"></div>
+</label>
+<label class="relative flex cursor-pointer rounded-lg border border-outline-variant bg-surface p-4 shadow-sm focus-within:ring-2 focus-within:ring-primary-fixed hover:bg-surface-container-low transition-colors group">
+<input class="peer sr-only" name="inquiry_type" type="radio" value="volunteer"/>
+<div class="flex items-center gap-3 w-full">
+<span class="material-symbols-outlined text-outline peer-checked:text-primary-container group-hover:text-primary transition-colors">nature_people</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface peer-checked:text-primary">Volunteer Support</span>
+</div>
+<div class="absolute inset-0 border-2 border-transparent peer-checked:border-primary-container rounded-lg pointer-events-none"></div>
+</label>
+</div>
+</div>
+<!-- Inputs -->
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-2" for="fullName">Full Name / Organization</label>
+<input class="w-full bg-secondary-container/50 border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-4 focus:ring-primary-fixed/20 transition-all placeholder:text-outline/70" id="fullName" placeholder="e.g. John Doe / EcoCorp" type="text" required/>
+</div>
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-2" for="email">Secure Email Address</label>
+<input class="w-full bg-secondary-container/50 border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-4 focus:ring-primary-fixed/20 transition-all placeholder:text-outline/70" id="email" placeholder="contact@domain.com" type="email" required/>
+</div>
+<div class="md:col-span-2">
+<label class="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-2" for="message">Mission Details</label>
+<textarea class="w-full bg-secondary-container/50 border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-4 focus:ring-primary-fixed/20 transition-all placeholder:text-outline/70 resize-none" id="message" placeholder="Provide context regarding your environmental initiative..." rows="5" required></textarea>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-outline-variant/20">
+<p class="font-label-caps text-label-caps text-outline flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">lock</span> Secure Encrypted Transmission
+                            </p>
+<button class="bg-primary text-on-primary font-headline-md text-body-md font-bold px-8 py-4 rounded-lg flex items-center gap-2 hover:bg-primary-container transition-all duration-300 shadow-[0_8px_16px_rgba(0,56,32,0.2)] hover:shadow-[0_12px_24px_rgba(0,56,32,0.3)] hover:-translate-y-1 relative overflow-hidden group" type="submit">
+<span class="relative z-10">Transmit Request</span>
+<span class="material-symbols-outlined relative z-10 transition-transform group-hover:translate-x-1">send</span>
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-primary-fixed/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+<div class="absolute inset-0 rounded-lg shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)] pointer-events-none"></div>
+</button>
+</div>
+</form>
+</div>
+<!-- Right Column: Community & Trust -->
+<div class="lg:col-span-4 flex flex-col gap-6 text-left">
+<!-- Trust Indicator Card -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-sm" style="font-variation-settings: 'FILL' 1;">speed</span>
+                            Operational Metrics
+                        </h3>
+<div class="flex items-end gap-3 mb-2">
+<span class="font-stat-display text-stat-display text-primary">2.4<span class="text-headline-md text-outline font-normal">hrs</span></span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Average Response Time</p>
+<div class="mt-6 pt-6 border-t border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Verified Identity</p>
+<p class="font-label-caps text-label-caps text-outline">Government &amp; NGO Cleared</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Social Network Cards -->
+<div class="flex-grow space-y-4">
+<!-- LinkedIn -->
+<a class="block bg-surface border border-outline-variant rounded-xl p-5 hover:border-primary-container hover:shadow-lg transition-all duration-300 group" href="#">
+<div class="flex justify-between items-center mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-[#0077B5]/10 flex items-center justify-center text-[#0077B5]">
+<span class="material-symbols-outlined">work</span>
+</div>
+<span class="font-headline-md text-body-lg text-on-surface font-semibold">LinkedIn</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<div class="flex justify-between items-end">
+<p class="font-body-md text-body-md text-on-surface-variant">Strategic Partnerships</p>
+<span class="font-label-caps text-label-caps bg-surface-container py-1 px-2 rounded text-on-surface-variant">12k+ Network</span>
+</div>
+</a>
+<!-- WhatsApp -->
+<a class="block bg-surface border border-outline-variant rounded-xl p-5 hover:border-primary-container hover:shadow-lg transition-all duration-300 group" href="#">
+<div class="flex justify-between items-center mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-[#25D366]/10 flex items-center justify-center text-[#25D366]">
+<span class="material-symbols-outlined">chat</span>
+</div>
+<span class="font-headline-md text-body-lg text-on-surface font-semibold">WhatsApp</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<div class="flex justify-between items-end">
+<p class="font-body-md text-body-md text-on-surface-variant">Urgent Community Alerts</p>
+<span class="font-label-caps text-label-caps bg-surface-container py-1 px-2 rounded text-on-surface-variant">Fastest Res.</span>
+</div>
+</a>
+<!-- Telegram -->
+<a class="block bg-surface border border-outline-variant rounded-xl p-5 hover:border-primary-container hover:shadow-lg transition-all duration-300 group" href="#">
+<div class="flex justify-between items-center mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-[#0088cc]/10 flex items-center justify-center text-[#0088cc]">
+<span class="material-symbols-outlined">campaign</span>
+</div>
+<span class="font-headline-md text-body-lg text-on-surface font-semibold">Telegram</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<div class="flex justify-between items-end">
+<p class="font-body-md text-body-md text-on-surface-variant">Volunteer Broadcasts</p>
+<span class="font-label-caps text-label-caps bg-surface-container py-1 px-2 rounded text-on-surface-variant">5k+ Active</span>
+</div>
+</a>
+</div>
+</div>
+</div>
+</section>
+</main>
+
+<!-- Toast Message Overlay -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-inverse-on-surface px-6 py-3 rounded-full shadow-lg flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-[110]" id="toast">
+    <span id="toastIcon" class="text-xl">🌱</span>
+    <span id="toastMessage" class="text-sm font-medium">Inquiry transmitted securely.</span>
+</div>
+
+<!-- Footer -->
+<footer class="w-full py-6 px-margin-desktop flex justify-between items-center bg-primary dark:bg-primary border-t border-primary-container text-on-primary font-label-caps text-label-caps md:mb-0 mb-16 relative z-10">
+<div class="opacity-80 hover:opacity-100 transition-opacity">
+            © 2026 ENVIRONMENTAL MISSION CONTROL. SECURE ACCESS ONLY.
+        </div>
+<div class="flex gap-gutter">
+<a class="text-primary-fixed-dim hover:text-primary-fixed transition-colors" href="#">Privacy Policy</a>
+<a class="text-primary-fixed-dim hover:text-primary-fixed transition-colors" href="#">Terms of Service</a>
+<a class="text-primary-fixed-dim hover:text-primary-fixed transition-colors" href="#">Mission Protocols</a>
+</div>
+</footer>
+
+<script>
+    // Particle generation
+    function createParticles() {
+        const container = document.getElementById('particles');
+        if (!container) return;
+        const particleCount = 10;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            const size = Math.random() * 8 + 4; // 4px to 12px
+            const left = Math.random() * 98; // 0% to 98vw
+            const duration = Math.random() * 18 + 12; // 12s to 30s
+            const delay = Math.random() * 10; // 0s to 10s
+
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${left}vw`;
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `-${delay}s`;
+
+            container.appendChild(particle);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', createParticles);
+</script>
+<script src="contact.js"></script>
+</body>
+</html>

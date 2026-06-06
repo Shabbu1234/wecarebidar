@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Review Center | Mission Control</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f9f9ff",
+                        "surface-container-highest": "#dce2f7",
+                        "surface-container-high": "#e1e8fd",
+                        "inverse-surface": "#293040",
+                        "surface-tint": "#2d6a48",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-primary-container": "#84c39b",
+                        "tertiary-container": "#cca730",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-container": "#0f5132",
+                        "primary-fixed-dim": "#95d4ac",
+                        "surface-container": "#e9edff",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#404942",
+                        "on-primary-fixed-variant": "#0f5132",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#c8c6c2",
+                        "background": "#f9f9ff",
+                        "secondary-container": "#e5e2dd",
+                        "on-background": "#141b2b",
+                        "on-tertiary-container": "#4f3d00",
+                        "primary": "#003820",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c0c9c0",
+                        "on-secondary-fixed": "#1c1c19",
+                        "outline": "#707971",
+                        "secondary-fixed": "#e5e2dd",
+                        "surface-variant": "#dce2f7",
+                        "secondary": "#5f5e5b",
+                        "inverse-primary": "#95d4ac",
+                        "tertiary-fixed": "#ffe088",
+                        "surface": "#f9f9ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "surface-dim": "#d3daef",
+                        "on-secondary-container": "#656461",
+                        "on-error": "#ffffff",
+                        "tertiary": "#735c00",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "on-primary-fixed": "#002111",
+                        "primary-fixed": "#b0f1c7",
+                        "on-secondary-fixed-variant": "#474743",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#141b2b",
+                        "on-tertiary-fixed-variant": "#574500"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "margin-mobile": "20px",
+                        "unit": "8px",
+                        "section-gap": "120px",
+                        "gutter": "32px",
+                        "container-max": "1280px",
+                        "margin-desktop": "64px"
+                    },
+                    fontFamily: {
+                        "display-lg": ["Montserrat"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "stat-display": ["Montserrat"],
+                        "label-caps": ["Montserrat"]
+                    },
+                    fontSize: {
+                        "display-lg": ["64px", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "800" }],
+                        "body-md": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
+                        "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
+                        "headline-lg": ["32px", { lineHeight: "1.3", fontWeight: "700" }],
+                        "display-lg-mobile": ["40px", { lineHeight: "1.2", fontWeight: "800" }],
+                        "headline-md": ["24px", { lineHeight: "1.4", fontWeight: "700" }],
+                        "stat-display": ["48px", { lineHeight: "1", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "label-caps": ["12px", { lineHeight: "1", letterSpacing: "0.1em", fontWeight: "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-image: radial-gradient(circle at 50% 0%, rgba(149, 212, 172, 0.15) 0%, transparent 75%);
+            background-attachment: fixed;
+        }
+        .glass-panel {
+            background: rgba(249, 249, 255, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 56, 32, 0.1);
+        }
+        /* Floating leaf particles */
+        .particle {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            background: rgba(15, 81, 50, 0.08);
+            animation: float 20s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased font-body-md min-h-screen relative overflow-x-hidden flex flex-col">
+
+    <!-- Atmospheric Particles -->
+    <div class="fixed inset-0 pointer-events-none z-0" id="particles"></div>
+
+    <!-- Sandbox Mode Indicator Banner -->
+    <div class="fixed top-20 left-0 w-full z-45 bg-amber-500 text-amber-950 font-semibold text-xs py-2 px-6 text-center border-b border-amber-600/30 shadow-sm transition-all duration-300" id="sandboxBanner" style="display: none;">
+        ⚠️ Running in <strong>Developer Sandbox Mode</strong> (No live SMS OTP cost. RLS bypassed via sandbox access keys).
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md" id="loginModal">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl shadow-2xl flex flex-col gap-6 text-left mx-margin-mobile">
+            <div class="text-center">
+                <h2 class="font-headline-lg text-2xl font-black text-primary uppercase tracking-tight mb-2">Admin Access</h2>
+                <p class="text-sm text-on-surface-variant">Enter decryption or service token key to authenticate.</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div class="flex flex-col gap-2">
+                    <label class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase tracking-wider" for="adminToken">Decryption Key / Token</label>
+                    <input 
+                        type="password" 
+                        id="adminToken" 
+                        class="w-full bg-white/80 border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none" 
+                        placeholder="Enter token string" 
+                        required
+                    >
+                </div>
+                <button type="submit" class="w-full py-4 bg-primary text-on-primary font-headline-md text-sm font-bold rounded-lg shadow-lg hover:bg-primary-container transition-all">
+                    Authenticate Credentials
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Webhook Setup Modal -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md hidden" id="webhookModal">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl shadow-2xl flex flex-col gap-6 text-left mx-margin-mobile">
+            <div class="text-center">
+                <h2 class="font-headline-lg text-2xl font-black text-primary uppercase tracking-tight mb-2">Webhook Settings</h2>
+                <p class="text-sm text-on-surface-variant">Configure target activepieces webhook endpoint.</p>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase tracking-wider" for="webhookUrlInput">AntGvity Webhook URL</label>
+                <input 
+                    type="url" 
+                    id="webhookUrlInput" 
+                    class="w-full bg-white/80 border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none" 
+                    placeholder="https://cloud.activepieces.com/api/v1/webhooks/..." 
+                >
+            </div>
+            <div class="flex gap-3">
+                <button id="btnSaveWebhook" class="flex-1 py-3 bg-primary text-on-primary font-headline-md text-sm font-bold rounded-lg shadow-lg hover:bg-primary-container transition-all">
+                    Save Settings
+                </button>
+                <button id="btnCloseWebhook" class="flex-1 py-3 border-2 border-outline-variant text-on-surface-variant font-headline-md text-sm font-bold rounded-lg hover:bg-surface-dim transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification System -->
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-inverse-on-surface px-6 py-3 rounded-full shadow-lg flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-[110]" id="toast">
+        <span id="toastIcon" class="text-xl">🌱</span>
+        <span id="toastMessage" class="text-sm font-medium">Action completed successfully.</span>
+    </div>
+
+    <!-- TopAppBar -->
+    <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-20 bg-primary border-b border-primary-container shadow-[0px_20px_50px_rgba(0,0,0,0.08)]">
+        <div class="flex items-center gap-8">
+            <h1 class="text-headline-md font-headline-md font-black tracking-tight text-on-primary uppercase flex items-center gap-2">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">eco</span>
+                ECO-COMMAND
+            </h1>
+        </div>
+        <nav class="hidden lg:flex items-center gap-6">
+            <a class="text-primary-fixed-dim hover:text-on-primary text-sm font-bold hover:bg-primary-container transition-colors duration-200 px-4 py-2 rounded-lg" href="index.html">Home</a>
+            <a class="text-primary-fixed-dim hover:text-on-primary text-sm font-bold hover:bg-primary-container transition-colors duration-200 px-4 py-2 rounded-lg" href="feed.html">Feed</a>
+            <a class="text-primary-fixed-dim hover:text-on-primary text-sm font-bold hover:bg-primary-container transition-colors duration-200 px-4 py-2 rounded-lg" href="leaderboard.html">Leaderboard</a>
+            <a class="text-primary-fixed-dim hover:text-on-primary text-sm font-bold hover:bg-primary-container transition-colors duration-200 px-4 py-2 rounded-lg" href="about.html">About</a>
+            <a class="text-primary-fixed-dim hover:text-on-primary text-sm font-bold hover:bg-primary-container transition-colors duration-200 px-4 py-2 rounded-lg" href="contact.html">Contact</a>
+        </nav>
+        <div class="flex items-center gap-2 md:gap-4">
+            <button id="btnConfigureWebhook" aria-label="settings" class="text-on-primary hover:bg-primary-container p-2 rounded-full transition-colors duration-200">
+                <span class="material-symbols-outlined" data-icon="settings">settings</span>
+            </button>
+            <button id="btnHeaderLogout" aria-label="logout" class="text-on-primary hover:bg-primary-container p-2 rounded-full transition-colors duration-200">
+                <span class="material-symbols-outlined" data-icon="logout">logout</span>
+            </button>
+            <img id="headerUserAvatar" alt="User Profile Avatar" class="w-10 h-10 rounded-full border-2 border-primary-fixed object-cover" src="https://api.dicebear.com/7.x/bottts/svg?seed=Admin"/>
+        </div>
+    </header>
+
+    <!-- SideNavBar -->
+    <aside class="hidden md:flex fixed left-0 top-20 h-[calc(100vh-80px)] w-64 flex-col p-4 z-40 bg-inverse-surface border-r border-outline-variant shadow-2xl text-left">
+        <div class="mb-8 px-2">
+            <img alt="Mission Control Identity" class="w-12 h-12 rounded-lg mb-4" data-alt="A sleek, metallic environmental control emblem, dark minimalist background, glowing green accents, high-end 3d render style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALLcLHLGg9mWY67HkPK1GOUrlHqYcnaBsy0PDTXjWynf7eFMK6xmlWc4S6zFjHabCdKIb1M4i8ELf2kUzatLaswX3YC8qlKSbYDNO2nPUInbvI4Q07WMJH0svCQ0qE3o5pEK_mcOfKIggAqXZSYrR37LTtNXnmJocNMoMGe_EsKRB3vtgGKM9jC7NywLUV_0RFacg2-f-22hxszZtzcD5AGrFUeotiPxlVvZaBWqqsIDBfzzmvPPCD2LIU9KEVzIo4K4bpNg3iJFo"/>
+            <h2 class="font-label-caps text-label-caps text-primary-fixed uppercase tracking-widest">Mission Control</h2>
+            <p class="text-body-md font-body-md text-surface-variant text-sm opacity-80 mt-1">Status: ACTIVE</p>
+        </div>
+        <nav class="flex-grow space-y-2">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-variant hover:bg-surface-variant/10 text-body-md font-body-md hover:bg-primary-fixed-dim/20 transition-all duration-300" href="index.html">
+                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-variant hover:bg-surface-variant/10 text-body-md font-body-md hover:bg-primary-fixed-dim/20 transition-all duration-300" href="upload.html">
+                <span class="material-symbols-outlined" data-icon="cloud_upload">cloud_upload</span>
+                <span>Upload</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-variant hover:bg-surface-variant/10 text-body-md font-body-md hover:bg-primary-fixed-dim/20 transition-all duration-300" href="profile.html">
+                <span class="material-symbols-outlined" data-icon="person">person</span>
+                <span>Profile</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-variant hover:bg-surface-variant/10 text-body-md font-body-md hover:bg-primary-fixed-dim/20 transition-all duration-300" href="admin.html">
+                <span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+                <span>Admin Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-container text-on-primary-container font-bold text-body-md hover:bg-primary-fixed-dim/20 transition-all duration-300" href="moderation.html">
+                <span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+                <span>Review Center</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-variant hover:bg-surface-variant/10 text-body-md font-body-md hover:bg-primary-fixed-dim/20 transition-all duration-300" href="analytics.html">
+                <span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                <span>Analytics</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-variant hover:bg-surface-variant/10 text-body-md font-body-md hover:bg-primary-fixed-dim/20 transition-all duration-300" href="#">
+                <span class="material-symbols-outlined" data-icon="settings_suggest">settings_suggest</span>
+                <span>Configuration</span>
+            </a>
+        </nav>
+        <div class="mt-auto space-y-4">
+            <a href="upload.html" class="w-full py-3 bg-primary text-on-primary font-headline-md text-sm font-bold rounded-lg shadow-lg hover:bg-surface-tint transition-colors border border-primary-fixed/30 text-center block">
+                New Mission
+            </a>
+            <div class="space-y-2 border-t border-outline-variant pt-4">
+                <a class="flex items-center gap-3 px-4 py-2 text-surface-variant hover:text-primary-fixed text-body-md font-body-md transition-colors" href="#">
+                    <span class="material-symbols-outlined" data-icon="lock">lock</span>
+                    <span>Security</span>
+                </a>
+                <button id="btnLogout" class="w-full flex items-center gap-3 px-4 py-2 text-surface-variant hover:text-primary-fixed text-body-md font-body-md transition-colors text-left">
+                    <span class="material-symbols-outlined" data-icon="logout">logout</span>
+                    <span>Log Out</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Canvas -->
+    <main class="pt-28 md:pl-72 pr-margin-mobile md:pr-margin-desktop pb-section-gap min-h-screen z-10 flex-grow relative">
+        <div class="max-w-container-max mx-auto space-y-12">
+            <!-- Header Section -->
+            <header class="border-b border-surface-dim pb-8 text-left">
+                <h1 class="font-headline-lg text-[28px] md:text-headline-lg text-on-surface mb-2 font-black">Content Verification Workspace</h1>
+                <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Review and moderate environmental submissions ensuring compliance with ECO-COMMAND safety standards and impact verification protocols.</p>
+            </header>
+
+            <!-- Empty State (Hidden by default, shown when queue is empty) -->
+            <div class="glass-panel rounded-2xl p-16 text-center max-w-xl mx-auto shadow-md" id="emptyState" style="display: none;">
+                <span class="material-symbols-outlined text-primary text-6xl mb-4" style="font-variation-settings: 'FILL' 1;">park</span>
+                <h3 class="font-headline-md text-2xl text-primary font-bold">Queue Clean & Green</h3>
+                <p class="text-on-surface-variant text-sm mt-2">No environmental videos are currently waiting for approval.</p>
+            </div>
+
+            <!-- Main Workspace Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" id="moderationWorkspace">
+                <!-- Left Column: Video & Details -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- Video Player Container -->
+                    <div class="glass-panel rounded-xl overflow-hidden relative shadow-[0px_20px_50px_rgba(0,0,0,0.04)] group">
+                        <div class="aspect-video bg-inverse-surface relative flex items-center justify-center">
+                            <video id="reviewVideo" class="w-full h-full object-cover" controls autoplay loop muted>
+                                Your browser does not support HTML5 video playback.
+                            </video>
+                            
+                            <!-- Status Badge -->
+                            <div class="absolute top-4 right-4 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full font-label-caps text-label-caps flex items-center gap-1 shadow-lg font-bold text-[10px]">
+                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">pending_actions</span>
+                                PENDING REVIEW
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submission Details Card -->
+                    <div class="glass-panel rounded-xl p-8 space-y-6 text-left">
+                        <div>
+                            <span id="reviewCategory" class="inline-block px-2.5 py-1 bg-primary-fixed text-primary font-label-caps text-[10px] font-bold uppercase tracking-wider rounded mb-3">Classification</span>
+                            <h2 id="reviewTitle" class="font-headline-md text-headline-md text-on-surface mb-2 font-bold leading-tight">Project Title</h2>
+                            <p id="reviewDescription" class="font-body-md text-body-md text-on-surface-variant leading-relaxed">Project details and user notes stream here...</p>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-surface-dim">
+                            <div>
+                                <span class="block font-label-caps text-[10px] text-outline mb-1 font-bold">CONTRIBUTOR</span>
+                                <div class="flex items-center gap-2">
+                                    <img id="reviewContributorAvatar" alt="Contributor avatar" class="w-6 h-6 rounded-full object-cover" src="https://api.dicebear.com/7.x/bottts/svg?seed=Admin"/>
+                                    <span id="reviewContributorName" class="font-body-md text-sm font-semibold truncate max-w-[90px]">Dr. Vance</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="block font-label-caps text-[10px] text-outline mb-1 font-bold">LOCATION</span>
+                                <span id="reviewLocation" class="font-body-md text-sm font-semibold text-primary">Sector 7G</span>
+                            </div>
+                            <div>
+                                <span class="block font-label-caps text-[10px] text-outline mb-1 font-bold">SUBMITTED</span>
+                                <span id="reviewSubmittedDate" class="font-body-md text-sm font-semibold">2 hours ago</span>
+                            </div>
+                            <div>
+                                <span class="block font-label-caps text-[10px] text-outline mb-1 font-bold">AI CONFIDENCE</span>
+                                <span id="reviewAiScore" class="font-body-md text-[11px] font-semibold text-primary-container bg-primary-fixed px-2 py-1 rounded-md">94% MATCH</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Moderation Tools -->
+                <div class="space-y-8">
+                    <!-- Trust & Safety Checklist -->
+                    <div class="glass-panel rounded-xl p-6 text-left">
+                        <div class="flex items-center gap-3 mb-6">
+                            <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">shield</span>
+                            <h3 class="font-headline-md text-xl font-bold text-on-surface">Safety Checklist</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <label class="flex items-start gap-4 p-3 rounded-lg hover:bg-surface-dim transition-colors cursor-pointer group">
+                                <input id="checkNoHate" class="mt-1 rounded text-primary focus:ring-primary bg-surface border-outline-variant w-5 h-5 guardrail-check" type="checkbox"/>
+                                <div>
+                                    <span class="block font-body-md text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">No Hate / Harassment</span>
+                                    <span class="block text-xs text-on-surface-variant mt-0.5">Content does not attack individuals or groups.</span>
+                                </div>
+                            </label>
+                            <label class="flex items-start gap-4 p-3 rounded-lg hover:bg-surface-dim transition-colors cursor-pointer group">
+                                <input id="checkNoViolence" class="mt-1 rounded text-primary focus:ring-primary bg-surface border-outline-variant w-5 h-5 guardrail-check" type="checkbox"/>
+                                <div>
+                                    <span class="block font-body-md text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">No Graphic Violence</span>
+                                    <span class="block text-xs text-on-surface-variant mt-0.5">No depiction of vulgar damage or inappropriate cyber content.</span>
+                                </div>
+                            </label>
+                            <label class="flex items-start gap-4 p-3 rounded-lg hover:bg-surface-dim transition-colors cursor-pointer group">
+                                <input id="checkScientific" class="mt-1 rounded text-primary focus:ring-primary bg-surface border-outline-variant w-5 h-5 guardrail-check" type="checkbox"/>
+                                <div>
+                                    <span class="block font-body-md text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">Eco Authenticity Verified</span>
+                                    <span class="block text-xs text-on-surface-variant mt-0.5">Claims represent active natural/civic conservation.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Action Panel -->
+                    <div class="glass-panel rounded-xl p-6 bg-surface-bright border-l-4 border-l-primary text-left">
+                        <h3 class="font-headline-md text-xl font-bold text-on-surface mb-4">Review Decision</h3>
+                        <div class="space-y-4">
+                            <textarea id="moderationFeedback" class="w-full bg-white border border-outline-variant rounded-lg p-4 font-body-md text-sm focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none resize-none h-24" placeholder="Add optional moderation feedback or revision notes..."></textarea>
+                            <div class="flex flex-col gap-3">
+                                <button id="btnApprove" disabled class="w-full py-4 bg-primary text-on-primary font-headline-md text-sm font-bold rounded-lg shadow-lg hover:bg-primary-container transition-all relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
+                                    <span class="relative flex items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        APPROVE SUBMISSION
+                                    </span>
+                                </button>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button id="btnRevision" class="py-3 border border-tertiary text-tertiary font-headline-md text-xs font-bold rounded-lg hover:bg-tertiary-container hover:text-on-tertiary-container transition-colors flex items-center justify-center gap-1">
+                                        <span class="material-symbols-outlined text-base">edit_note</span>
+                                        REVISION
+                                    </button>
+                                    <button id="btnReject" class="py-3 border border-error text-error font-headline-md text-xs font-bold rounded-lg hover:bg-error-container hover:border-error-container transition-colors flex items-center justify-center gap-1">
+                                        <span class="material-symbols-outlined text-base">cancel</span>
+                                        REJECT
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Timeline -->
+                    <div class="glass-panel rounded-xl p-6 text-left">
+                        <h3 class="font-label-caps text-[10px] text-outline mb-6 font-bold uppercase tracking-wider">AUDIT TRAIL</h3>
+                        <div id="reviewAuditTrail" class="space-y-6 relative before:absolute before:inset-y-0 before:left-5 before:h-full before:w-0.5 before:bg-surface-dim">
+                            <!-- Timeline Items populate here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-6 px-margin-mobile md:px-margin-desktop flex justify-between items-center bg-primary text-on-primary border-t border-primary-container relative z-10">
+        <span class="font-label-caps text-[10px] opacity-80">© 2026 ENVIRONMENTAL MISSION CONTROL. SECURE ACCESS ONLY.</span>
+        <div class="hidden md:flex gap-6">
+            <a class="font-label-caps text-[10px] text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+            <a class="font-label-caps text-[10px] text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+            <a class="font-label-caps text-[10px] text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="#">Mission Protocols</a>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Leaf particles generator
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            const particleCount = 12;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 10 + 4; // 4px to 14px
+                const left = Math.random() * 98; // 0% to 98vw
+                const duration = Math.random() * 18 + 12; // 12s to 30s
+                const delay = Math.random() * 10; // 0s to 10s
+
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${left}vw`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `-${delay}s`;
+
+                container.appendChild(particle);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', createParticles);
+    </script>
+    <script src="moderation.js"></script>
+</body>
+</html>

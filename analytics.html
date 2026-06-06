@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ECO-COMMAND - Impact Analytics Center | WeCareBidar</title>
+    <meta name="description" content="Real-time environmental impact analytics dashboard. Track reach, campaigns, platform distribution, and geographic impact across Bidar."/>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f9f9ff",
+                        "surface-container-highest": "#dce2f7",
+                        "surface-container-high": "#e1e8fd",
+                        "inverse-surface": "#293040",
+                        "surface-tint": "#2d6a48",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-primary-container": "#84c39b",
+                        "tertiary-container": "#cca730",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-container": "#0f5132",
+                        "primary-fixed-dim": "#95d4ac",
+                        "surface-container": "#e9edff",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#404942",
+                        "on-primary-fixed-variant": "#0f5132",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#c8c6c2",
+                        "background": "#f9f9ff",
+                        "secondary-container": "#e5e2dd",
+                        "on-background": "#141b2b",
+                        "on-tertiary-container": "#4f3d00",
+                        "primary": "#003820",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c0c9c0",
+                        "on-secondary-fixed": "#1c1c19",
+                        "outline": "#707971",
+                        "secondary-fixed": "#e5e2dd",
+                        "surface-variant": "#dce2f7",
+                        "secondary": "#5f5e5b",
+                        "inverse-primary": "#95d4ac",
+                        "tertiary-fixed": "#ffe088",
+                        "surface": "#f9f9ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "surface-dim": "#d3daef",
+                        "on-secondary-container": "#656461",
+                        "on-error": "#ffffff",
+                        "tertiary": "#735c00",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "on-primary-fixed": "#002111",
+                        "primary-fixed": "#b0f1c7",
+                        "on-secondary-fixed-variant": "#474743",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#141b2b",
+                        "on-tertiary-fixed-variant": "#574500"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "20px",
+                        "unit": "8px",
+                        "section-gap": "64px",
+                        "gutter": "32px",
+                        "container-max": "1280px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Montserrat"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "stat-display": ["Montserrat"],
+                        "label-caps": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "display-lg-mobile": ["40px", { "lineHeight": "1.2", "fontWeight": "800" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "700" }],
+                        "stat-display": ["48px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }]
+                    }
+                },
+            },
+        }
+    </script>
+
+    <style>
+        /* Glass morphism panel */
+        .glass-panel {
+            background: rgba(249, 249, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 56, 32, 0.1);
+            box-shadow: 0px 20px 50px rgba(0, 0, 0, 0.06);
+        }
+        .glow-accent {
+            box-shadow: inset 0 0 20px rgba(204, 167, 48, 0.15);
+        }
+
+        /* Animated bar chart bars */
+        .bar-animate {
+            animation: growUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            transform-origin: bottom;
+        }
+        @keyframes growUp {
+            from { transform: scaleY(0); opacity: 0; }
+            to   { transform: scaleY(1); opacity: 1; }
+        }
+
+        /* Staggered animation delays for bar groups */
+        .bar-delay-1 { animation-delay: 0.05s; }
+        .bar-delay-2 { animation-delay: 0.1s; }
+        .bar-delay-3 { animation-delay: 0.15s; }
+        .bar-delay-4 { animation-delay: 0.2s; }
+        .bar-delay-5 { animation-delay: 0.25s; }
+        .bar-delay-6 { animation-delay: 0.3s; }
+        .bar-delay-7 { animation-delay: 0.35s; }
+        .bar-delay-8 { animation-delay: 0.4s; }
+        .bar-delay-9 { animation-delay: 0.45s; }
+        .bar-delay-10 { animation-delay: 0.5s; }
+        .bar-delay-11 { animation-delay: 0.55s; }
+        .bar-delay-12 { animation-delay: 0.6s; }
+
+        /* Progress bar animation */
+        .progress-animate {
+            animation: growRight 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            transform-origin: left;
+        }
+        @keyframes growRight {
+            from { transform: scaleX(0); }
+            to   { transform: scaleX(1); }
+        }
+
+        /* Heatmap cell pulse */
+        .heatmap-cell {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .heatmap-cell:hover {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+
+        /* Count-up number animation */
+        .count-up {
+            transition: all 0.5s ease;
+        }
+
+        /* Stat card hover */
+        .stat-card {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0px 28px 60px rgba(0, 56, 32, 0.12);
+        }
+
+        /* Campaign status dot */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c0c9c0; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+
+    <!-- Toast Notification -->
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-inverse-on-surface px-6 py-3 rounded-full shadow-lg flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-[110]" id="toast">
+        <span id="toastIcon" class="text-xl">📊</span>
+        <span id="toastMessage" class="text-sm font-medium">Action completed.</span>
+    </div>
+
+    <!-- TopAppBar (Mobile Only) -->
+    <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile h-20 bg-primary text-on-primary backdrop-blur-md bg-opacity-80 border-b border-primary-container md:hidden shadow-[0px_20px_50px_rgba(0,0,0,0.08)]">
+        <div class="font-headline-md text-headline-md font-black tracking-tight text-on-primary flex items-center gap-1.5">
+            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">eco</span>
+            ECO-COMMAND
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="profile.html" class="flex items-center">
+                <img id="mobileUserAvatar" alt="User Profile Avatar" class="w-8 h-8 rounded-full border-2 border-primary-container object-cover" src="https://api.dicebear.com/7.x/bottts/svg?seed=Analytics"/>
+            </a>
+        </div>
+    </header>
+
+    <!-- SideNavBar (Desktop) -->
+    <nav class="hidden md:flex flex-col bg-inverse-surface text-primary-fixed fixed left-0 top-0 h-full w-64 p-4 z-40 bg-opacity-95 backdrop-blur-xl border-r border-outline-variant shadow-2xl">
+        <div class="mb-8 px-4 mt-6">
+            <div class="flex items-center gap-3 mb-6">
+                <img id="sidebarUserAvatar" alt="Mission Control Identity" class="w-10 h-10 rounded-full border-2 border-primary-fixed object-cover" src="https://api.dicebear.com/7.x/bottts/svg?seed=Analytics"/>
+                <div>
+                    <h2 class="font-body-md text-body-md font-bold text-white truncate max-w-[120px]" id="sidebarUserFullName">Mission Control</h2>
+                    <p class="font-label-caps text-[9px] text-primary-fixed tracking-widest uppercase" id="sidebarUserRole">Status: ACTIVE</p>
+                </div>
+            </div>
+            <a href="upload.html" class="w-full bg-primary-fixed text-on-primary-fixed font-body-md text-body-md font-bold py-3 rounded-lg shadow-[0_4px_14px_0_rgba(176,241,199,0.39)] hover:bg-primary-fixed-dim transition-all duration-300 block text-center">
+                New Mission
+            </a>
+        </div>
+        <ul class="space-y-2 flex-grow">
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md text-surface-variant hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="index.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">dashboard</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md text-surface-variant hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="upload.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">cloud_upload</span>
+                    Upload
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md text-surface-variant hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="profile.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">person</span>
+                    Profile
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md text-surface-variant hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="admin.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">admin_panel_settings</span>
+                    Admin Dashboard
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md text-surface-variant hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="moderation.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">fact_check</span>
+                    Review Center
+                </a>
+            </li>
+            <!-- Analytics — Active -->
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-lg font-body-md text-body-md font-bold shadow-md" href="analytics.html">
+                    <span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings:'FILL' 1;">analytics</span>
+                    Analytics
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md text-surface-variant hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="#">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">settings_suggest</span>
+                    Configuration
+                </a>
+            </li>
+        </ul>
+        <div class="mt-auto border-t border-outline-variant pt-4">
+            <ul class="space-y-2">
+                <li>
+                    <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md text-surface-variant hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="#">
+                        <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">lock</span>
+                        Security
+                    </a>
+                </li>
+                <li>
+                    <button id="btnLogout" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md text-surface-variant hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group text-left">
+                        <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">logout</span>
+                        Log Out
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 pt-20 md:pt-0 px-margin-mobile md:px-margin-desktop pb-16 bg-surface">
+        <div class="max-w-container-max mx-auto">
+
+            <!-- Page Header -->
+            <header class="mb-10 mt-8">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <p class="font-label-caps text-label-caps text-tertiary tracking-widest mb-2 uppercase">Mission Intelligence</p>
+                        <h1 class="font-display-lg-mobile md:text-[52px] font-black text-primary mb-3 tracking-tight leading-none">Impact Analytics</h1>
+                        <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">Real-time intelligence tracking environmental reach, engagement vectors, and mission-critical metrics.</p>
+                    </div>
+                    <div class="flex items-center gap-3 mt-2">
+                        <span class="flex items-center gap-2 font-label-caps text-[11px] bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-bold">
+                            <span class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span>
+                            LIVE DATA
+                        </span>
+                        <button id="btnRefresh" class="flex items-center gap-2 border-[1.5px] border-outline-variant text-on-surface-variant font-label-caps text-label-caps px-4 py-2 rounded-full hover:bg-surface-dim transition-colors duration-200">
+                            <span class="material-symbols-outlined text-base">refresh</span>
+                            Refresh
+                        </button>
+                        <button id="btnExport" class="flex items-center gap-2 border-[1.5px] border-tertiary text-primary font-label-caps text-label-caps px-4 py-2 rounded-full hover:bg-tertiary hover:text-on-tertiary transition-colors duration-300">
+                            <span class="material-symbols-outlined text-base">download</span>
+                            Export
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ─────────────────────────────────────────── -->
+            <!-- SECTION 1 · KPI Summary Row                -->
+            <!-- ─────────────────────────────────────────── -->
+            <section class="grid grid-cols-2 lg:grid-cols-4 gap-unit md:gap-gutter mb-section-gap">
+
+                <!-- Total Submissions -->
+                <div class="stat-card glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-label-caps text-label-caps text-outline uppercase">Total Submissions</h3>
+                        <span class="material-symbols-outlined text-primary opacity-40 text-3xl">upload_file</span>
+                    </div>
+                    <div>
+                        <div class="font-stat-display text-[40px] md:text-stat-display text-primary leading-none mb-1" id="kpiTotalSubmissions">—</div>
+                        <p class="font-body-md text-sm text-on-surface-variant">All-time missions logged</p>
+                    </div>
+                </div>
+
+                <!-- Approved -->
+                <div class="stat-card glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-label-caps text-label-caps text-outline uppercase">Verified Actions</h3>
+                        <span class="material-symbols-outlined text-tertiary opacity-50 text-3xl">verified</span>
+                    </div>
+                    <div>
+                        <div class="font-stat-display text-[40px] md:text-stat-display text-tertiary leading-none mb-1" id="kpiApproved">—</div>
+                        <p class="font-body-md text-sm text-on-surface-variant">Approved &amp; published</p>
+                    </div>
+                </div>
+
+                <!-- Active Users -->
+                <div class="stat-card glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-label-caps text-label-caps text-outline uppercase">Active Citizens</h3>
+                        <span class="material-symbols-outlined text-primary-fixed-dim opacity-50 text-3xl">group</span>
+                    </div>
+                    <div>
+                        <div class="font-stat-display text-[40px] md:text-stat-display text-primary leading-none mb-1" id="kpiActiveUsers">—</div>
+                        <p class="font-body-md text-sm text-on-surface-variant">Registered participants</p>
+                    </div>
+                </div>
+
+                <!-- Pending Review -->
+                <div class="stat-card glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-label-caps text-label-caps text-outline uppercase">Pending Review</h3>
+                        <span class="material-symbols-outlined text-outline opacity-50 text-3xl">hourglass_top</span>
+                    </div>
+                    <div>
+                        <div class="font-stat-display text-[40px] md:text-stat-display text-on-surface-variant leading-none mb-1" id="kpiPending">—</div>
+                        <p class="font-body-md text-sm text-on-surface-variant">Awaiting moderation</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─────────────────────────────────────────── -->
+            <!-- SECTION 2 · Reach + Active Campaigns       -->
+            <!-- ─────────────────────────────────────────── -->
+            <section class="mb-section-gap">
+                <h2 class="font-headline-md text-headline-md text-primary mb-gutter flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tertiary" style="font-variation-settings:'FILL' 1;">visibility</span>
+                    Visibility Dashboard
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-unit md:gap-gutter">
+
+                    <!-- Total Reach Card (wide) -->
+                    <div class="stat-card glass-panel rounded-2xl p-8 md:col-span-2 relative overflow-hidden flex flex-col justify-between min-h-[260px]">
+                        <div class="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                            <span class="material-symbols-outlined" style="font-size:140px;">public</span>
+                        </div>
+                        <div class="relative z-10">
+                            <h3 class="font-label-caps text-label-caps text-outline mb-2 uppercase">Global Aggregate Reach</h3>
+                            <div class="font-stat-display text-stat-display text-primary mb-3 flex items-baseline gap-3">
+                                <span id="kpiReach">—</span>
+                                <span class="text-tertiary font-body-md text-body-md" id="kpiReachChange">—</span>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant max-w-md">Estimated unique impressions across all monitored channels over the last 30 operational days.</p>
+                        </div>
+                        <!-- Live animated bar chart -->
+                        <div class="mt-8 h-20 w-full flex items-end gap-1 overflow-hidden" id="reachBarChart" aria-label="Reach trend chart">
+                            <!-- Bars injected by analytics.js -->
+                        </div>
+                    </div>
+
+                    <!-- Active Campaigns Card -->
+                    <div class="stat-card glass-panel rounded-2xl p-8 flex flex-col justify-between min-h-[260px]">
+                        <div>
+                            <h3 class="font-label-caps text-label-caps text-outline mb-2 uppercase">Active Campaigns</h3>
+                            <div class="font-stat-display text-stat-display text-primary mb-4" id="kpiCampaigns">—</div>
+                        </div>
+                        <ul class="space-y-3" id="campaignList">
+                            <!-- Injected by analytics.js -->
+                            <li class="animate-pulse flex items-center justify-between border-b border-outline-variant/20 pb-2">
+                                <span class="w-28 h-4 bg-surface-container rounded"></span>
+                                <span class="w-4 h-4 bg-surface-container rounded-full"></span>
+                            </li>
+                            <li class="animate-pulse flex items-center justify-between border-b border-outline-variant/20 pb-2">
+                                <span class="w-24 h-4 bg-surface-container rounded"></span>
+                                <span class="w-4 h-4 bg-surface-container rounded-full"></span>
+                            </li>
+                            <li class="animate-pulse flex items-center justify-between pb-2">
+                                <span class="w-20 h-4 bg-surface-container rounded"></span>
+                                <span class="w-4 h-4 bg-surface-container rounded-full"></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─────────────────────────────────────────── -->
+            <!-- SECTION 3 · Platform Distribution + Growth -->
+            <!-- ─────────────────────────────────────────── -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-gutter mb-section-gap">
+
+                <!-- Platform Distribution -->
+                <div>
+                    <h2 class="font-headline-md text-headline-md text-primary mb-gutter flex items-center gap-2">
+                        <span class="material-symbols-outlined text-tertiary" style="font-variation-settings:'FILL' 1;">hub</span>
+                        Platform Distribution
+                    </h2>
+                    <div class="glass-panel rounded-2xl p-8 h-[400px] flex flex-col justify-center">
+                        <div class="flex-1 flex flex-col justify-center space-y-7" id="platformDistribution">
+                            <!-- Skeleton -->
+                            <div class="space-y-2 animate-pulse">
+                                <div class="flex justify-between"><span class="w-20 h-4 bg-surface-container rounded"></span><span class="w-8 h-4 bg-surface-container rounded"></span></div>
+                                <div class="w-full bg-surface-container-highest rounded-full h-2"><div class="bg-surface-container h-2 rounded-full w-1/2"></div></div>
+                            </div>
+                            <div class="space-y-2 animate-pulse">
+                                <div class="flex justify-between"><span class="w-16 h-4 bg-surface-container rounded"></span><span class="w-8 h-4 bg-surface-container rounded"></span></div>
+                                <div class="w-full bg-surface-container-highest rounded-full h-2"><div class="bg-surface-container h-2 rounded-full w-1/3"></div></div>
+                            </div>
+                            <div class="space-y-2 animate-pulse">
+                                <div class="flex justify-between"><span class="w-24 h-4 bg-surface-container rounded"></span><span class="w-8 h-4 bg-surface-container rounded"></span></div>
+                                <div class="w-full bg-surface-container-highest rounded-full h-2"><div class="bg-surface-container h-2 rounded-full w-1/5"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Growth Intelligence -->
+                <div>
+                    <h2 class="font-headline-md text-headline-md text-primary mb-gutter flex items-center gap-2">
+                        <span class="material-symbols-outlined text-tertiary" style="font-variation-settings:'FILL' 1;">insights</span>
+                        Growth Intelligence
+                    </h2>
+                    <div class="glass-panel rounded-2xl p-8 h-[400px] relative overflow-hidden group">
+                        <!-- Subtle BG image -->
+                        <div class="absolute inset-0 opacity-[0.07] bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                             style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCxUTtfrJKaOnWouATGpwNFdTTg-oDfEfzrjLPrje86kXHpoPBaLQG0NDgRFSyGgFyb7MQtTtC8rMYfAcP-pGJx1bU1k0VvfN4GQjVvkPTymWbm5_RP8GbKA3OigPfUMldcJaEfkuHZS76ZzqP1MzuwT_3nhC7LDchR3D98yOahwDuQ2JfPbjhbJ9AJ-jF5pJyvjyVolJsSw_G1ANDvECa7Nd69hwC5jux03rYLCgfxSqAypue2Q1FgxcI4orjZW-g3Sd8rn8X9hqY');">
+                        </div>
+                        <div class="relative z-10 h-full flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-label-caps text-label-caps text-outline mb-4 uppercase">MoM Growth Rate</h3>
+                                <div class="font-stat-display text-stat-display text-primary flex items-center gap-4">
+                                    <span id="kpiGrowthRate">+0%</span>
+                                    <span class="material-symbols-outlined text-4xl text-tertiary" id="growthArrow">arrow_upward</span>
+                                </div>
+                                <p class="font-body-md text-sm text-on-surface-variant mt-3">vs. previous 30-day period</p>
+                            </div>
+                            <!-- Monthly bar mini-chart -->
+                            <div class="mt-4 h-28 flex items-end gap-2 overflow-hidden" id="growthBarChart" aria-label="Monthly growth chart">
+                                <!-- Injected by analytics.js -->
+                            </div>
+                            <div class="bg-surface/80 backdrop-blur-sm p-4 rounded-xl border border-outline-variant/30 mt-4">
+                                <p class="font-body-md text-body-md text-on-surface" id="growthInsight">Loading growth intelligence...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─────────────────────────────────────────── -->
+            <!-- SECTION 4 · Impact Heatmap                 -->
+            <!-- ─────────────────────────────────────────── -->
+            <section class="mb-section-gap">
+                <div class="flex flex-wrap justify-between items-end mb-gutter gap-4">
+                    <h2 class="font-headline-md text-headline-md text-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-tertiary" style="font-variation-settings:'FILL' 1;">map</span>
+                        Activity Heatmap — Bidar Sector
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <span class="font-label-caps text-[11px] text-outline">Intensity:</span>
+                        <div class="flex gap-1 items-center">
+                            <span class="w-4 h-4 rounded bg-surface-container-high text-[8px] flex items-center justify-center"></span>
+                            <span class="w-4 h-4 rounded bg-primary-fixed-dim/30"></span>
+                            <span class="w-4 h-4 rounded bg-primary-fixed-dim/60"></span>
+                            <span class="w-4 h-4 rounded bg-primary-fixed-dim"></span>
+                            <span class="w-4 h-4 rounded bg-primary"></span>
+                        </div>
+                        <span class="font-label-caps text-[11px] text-outline ml-1">Low → High</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-6 overflow-hidden relative">
+                    <!-- Map background -->
+                    <div class="absolute inset-0 opacity-[0.06] bg-cover bg-center"
+                         style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBwFGDppcjtutRiNWqPPsv1RyEv4BIrPqWItXKIrcgEa3TtXTfEu8gW2GsUtFFFxwrd3550NTySpUCRELm88Z3dcCqVjDYhI9ZfS3iK2NoFPBzAODJSrUdA7bP1g5ctb4eACNw2WYEYMW5JvSgVOtPS_Btl_chjrev4gdwtDhdOsM6XuhI5f2cXbO9zcppyGddY_j3dG_sA-PSGnThjsA2bX6sbSSKrJs-vTsCv4fbQcen6_pgInJSNypSW6PYQAYMq8vU4m6AS7dg');">
+                    </div>
+
+                    <div class="relative z-10">
+                        <!-- Heatmap grid (7 cols × 10 rows = 70 cells representing weeks × days pattern) -->
+                        <div class="mb-4 flex justify-between items-center">
+                            <p class="font-label-caps text-[11px] text-outline uppercase">Daily submission activity — last 70 days</p>
+                            <div class="flex gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input id="filterApproved" type="checkbox" checked class="form-checkbox text-tertiary rounded focus:ring-tertiary w-4 h-4"/>
+                                    <span class="font-body-md text-sm text-on-surface">Approved</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input id="filterPending" type="checkbox" checked class="form-checkbox text-primary rounded focus:ring-primary w-4 h-4"/>
+                                    <span class="font-body-md text-sm text-on-surface">Pending</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input id="filterRejected" type="checkbox" class="form-checkbox text-outline rounded focus:ring-outline w-4 h-4"/>
+                                    <span class="font-body-md text-sm text-outline">Rejected</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Heatmap Grid -->
+                        <div class="grid gap-1.5 overflow-x-auto pb-2" style="grid-template-columns: repeat(10, minmax(28px, 1fr));" id="heatmapGrid" aria-label="Activity heatmap grid">
+                            <!-- Injected by analytics.js -->
+                        </div>
+
+                        <!-- Heatmap Tooltip -->
+                        <div id="heatmapTooltip" class="fixed hidden z-50 bg-on-surface text-inverse-on-surface text-xs font-medium px-3 py-2 rounded-lg shadow-lg pointer-events-none whitespace-nowrap">
+                            <span id="tooltipDate"></span> · <span id="tooltipCount"></span> submissions
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─────────────────────────────────────────── -->
+            <!-- SECTION 5 · Recent Activity Log            -->
+            <!-- ─────────────────────────────────────────── -->
+            <section class="mb-16">
+                <h2 class="font-headline-md text-headline-md text-primary mb-gutter flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tertiary" style="font-variation-settings:'FILL' 1;">receipt_long</span>
+                    Recent Submissions
+                </h2>
+                <div class="glass-panel rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left" id="recentTable">
+                            <thead class="bg-surface-container-low border-b border-outline-variant/30">
+                                <tr>
+                                    <th class="font-label-caps text-label-caps text-outline px-6 py-4 uppercase">Citizen</th>
+                                    <th class="font-label-caps text-label-caps text-outline px-6 py-4 uppercase">Title</th>
+                                    <th class="font-label-caps text-label-caps text-outline px-6 py-4 uppercase">Category</th>
+                                    <th class="font-label-caps text-label-caps text-outline px-6 py-4 uppercase">Status</th>
+                                    <th class="font-label-caps text-label-caps text-outline px-6 py-4 uppercase">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTableBody" class="divide-y divide-outline-variant/20">
+                                <!-- Skeleton rows -->
+                                <tr class="animate-pulse"><td class="px-6 py-4" colspan="5"><div class="h-4 bg-surface-container rounded w-full"></div></td></tr>
+                                <tr class="animate-pulse"><td class="px-6 py-4" colspan="5"><div class="h-4 bg-surface-container rounded w-5/6"></div></td></tr>
+                                <tr class="animate-pulse"><td class="px-6 py-4" colspan="5"><div class="h-4 bg-surface-container rounded w-4/6"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div><!-- /max-w-container-max -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="md:ml-64 w-auto py-unit px-margin-desktop flex flex-wrap justify-between items-center bg-primary border-t border-primary-container z-10 relative gap-4">
+        <p class="font-label-caps text-label-caps text-on-primary opacity-80">
+            © 2024 WECAREBIDAR · ENVIRONMENTAL MISSION CONTROL
+        </p>
+        <nav class="flex gap-4">
+            <a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="about.html">About</a>
+            <a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="contact.html">Contact</a>
+            <a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="#">Mission Protocols</a>
+        </nav>
+    </footer>
+
+    <!-- Analytics JS -->
+    <script src="analytics.js"></script>
+</body>
+</html>

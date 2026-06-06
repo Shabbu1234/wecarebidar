@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Mission Submission Center - WeCareBidar</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Tailwind Config -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "background": "#f9f9ff",
+                  "surface": "#f9f9ff",
+                  "secondary-container": "#e5e2dd",
+                  "primary-fixed-dim": "#95d4ac",
+                  "inverse-surface": "#293040",
+                  "surface-dim": "#d3daef",
+                  "on-error-container": "#93000a",
+                  "on-tertiary": "#ffffff",
+                  "tertiary-fixed": "#ffe088",
+                  "surface-container-low": "#f1f3ff",
+                  "outline-variant": "#c0c9c0",
+                  "inverse-primary": "#95d4ac",
+                  "on-tertiary-fixed": "#241a00",
+                  "on-surface": "#141b2b",
+                  "outline": "#707971",
+                  "on-tertiary-container": "#4f3d00",
+                  "on-surface-variant": "#404942",
+                  "tertiary": "#735c00",
+                  "primary-container": "#0f5132",
+                  "inverse-on-surface": "#edf0ff",
+                  "on-secondary-fixed-variant": "#474743",
+                  "on-secondary": "#ffffff",
+                  "surface-container": "#e9edff",
+                  "on-primary-container": "#84c39b",
+                  "surface-container-lowest": "#ffffff",
+                  "secondary-fixed": "#e5e2dd",
+                  "on-error": "#ffffff",
+                  "tertiary-fixed-dim": "#e9c349",
+                  "surface-container-highest": "#dce2f7",
+                  "error-container": "#ffdad6",
+                  "on-primary-fixed-variant": "#0f5132",
+                  "tertiary-container": "#cca730",
+                  "surface-tint": "#2d6a48",
+                  "on-secondary-container": "#656461",
+                  "on-background": "#141b2b",
+                  "surface-variant": "#dce2f7",
+                  "secondary-fixed-dim": "#c8c6c2",
+                  "on-primary-fixed": "#002111",
+                  "on-tertiary-fixed-variant": "#574500",
+                  "surface-container-high": "#e1e8fd",
+                  "surface-bright": "#f9f9ff",
+                  "on-secondary-fixed": "#1c1c19",
+                  "secondary": "#5f5e5b",
+                  "primary": "#003820",
+                  "primary-fixed": "#b0f1c7",
+                  "on-primary": "#ffffff",
+                  "error": "#ba1a1a"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "gutter": "32px",
+                  "margin-desktop": "64px",
+                  "section-gap": "120px",
+                  "margin-mobile": "20px",
+                  "unit": "8px",
+                  "container-max": "1280px"
+          },
+          "fontFamily": {
+                  "headline-md": ["Montserrat"],
+                  "display-lg": ["Montserrat"],
+                  "body-md": ["Inter"],
+                  "display-lg-mobile": ["Montserrat"],
+                  "body-lg": ["Inter"],
+                  "stat-display": ["Montserrat"],
+                  "label-caps": ["Montserrat"],
+                  "headline-lg": ["Montserrat"]
+          },
+          "fontSize": {
+                  "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "700"}],
+                  "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                  "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                  "display-lg-mobile": ["40px", {"lineHeight": "1.2", "fontWeight": "800"}],
+                  "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                  "stat-display": ["48px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                  "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                  "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "700"}]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+        background-color: theme('colors.background');
+        background-image: radial-gradient(circle at 50% 0%, theme('colors.primary-fixed-dim' / 10%) 0%, transparent 70%);
+        background-attachment: fixed;
+    }
+    
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid theme('colors.primary' / 10%);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04);
+    }
+    
+    .drag-active {
+        border-color: theme('colors.primary');
+        background-color: theme('colors.primary-fixed-dim' / 10%);
+    }
+
+    /* Ambient particles */
+    .particle {
+        position: fixed;
+        border-radius: 50%;
+        background: theme('colors.primary-fixed-dim');
+        opacity: 0.15;
+        pointer-events: none;
+        z-index: 0;
+        animation: float 20s infinite linear;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+        10% { opacity: 0.15; }
+        90% { opacity: 0.15; }
+        100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+    }
+  </style>
+</head>
+<body class="text-on-surface antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+  <!-- Atmospheric Particles -->
+  <div id="particles-container"></div>
+  
+  <!-- Transactional Header -->
+  <header class="w-full py-6 px-margin-mobile md:px-margin-desktop flex justify-between items-center z-50 relative">
+    <a class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-caps text-label-caps uppercase tracking-wider" href="index.html">
+      <span class="material-symbols-outlined text-xl">arrow_back</span>
+      Cancel Submission
+    </a>
+    <div class="font-headline-md text-headline-md text-primary tracking-tight">WeCareBidar</div>
+  </header>
+  
+  <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-gutter relative z-10 flex flex-col items-center">
+    
+    <!-- Sandbox Warning Banner -->
+    <div class="w-full max-w-4xl bg-amber-500 text-amber-950 font-semibold text-xs py-3 px-6 rounded-2xl border border-amber-600/30 shadow-sm transition-all duration-300 text-center mb-6" id="sandboxBanner" style="display: none;">
+      ⚠️ Running in <strong>Developer Sandbox Mode</strong> (No live SMS OTP cost. RLS bypassed via sandbox access keys).
+    </div>
+
+    <!-- Hero Section -->
+    <div class="text-center max-w-3xl mx-auto mb-gutter">
+      <span class="inline-block py-1 px-3 rounded-full bg-surface-container border border-primary/10 text-primary font-label-caps text-label-caps uppercase mb-4 tracking-widest">
+        Mission Submission Center
+      </span>
+      <h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary mb-6">
+        Document Your<br/>Environmental Impact
+      </h1>
+      <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
+        Upload raw video evidence of your conservation efforts. Every verified action contributes to Bidar's ecological registry and inspires systemic change.
+      </p>
+    </div>
+    
+    <!-- Main Glassmorphic Form Card -->
+    <form id="uploadForm" class="glass-panel w-full max-w-4xl rounded-[2rem] p-6 md:p-12 flex flex-col gap-10">
+      
+      <!-- Upload Zone -->
+      <div class="flex flex-col gap-4">
+        <label class="font-headline-md text-headline-md text-primary">Media Evidence</label>
+        <div class="relative border-2 border-dashed border-outline-variant rounded-2xl p-10 flex flex-col items-center justify-center text-center transition-all duration-300 hover:border-primary/50 hover:bg-surface-container-lowest/50 cursor-pointer group" id="drop-zone">
+          <input accept="video/mp4,video/quicktime" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" id="file-input" type="file" required/>
+          <div class="bg-surface-container-high p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
+            <span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 0;">cloud_upload</span>
+          </div>
+          <h3 class="font-headline-md text-headline-md text-on-surface mb-2" id="drag-text-title">Drag &amp; Drop Video</h3>
+          <p class="font-body-md text-body-md text-on-surface-variant mb-4" id="drag-text-subtitle">or click to browse local files</p>
+          <div class="flex items-center gap-3 text-sm font-label-caps text-label-caps text-outline" id="drag-text-specs">
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-base">movie</span> MP4 / MOV</span>
+            <span class="w-1 h-1 rounded-full bg-outline"></span>
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-base">sd_storage</span> Max 40MB</span>
+            <span class="w-1 h-1 rounded-full bg-outline"></span>
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-base">high_quality</span> 720p+ Required</span>
+          </div>
+        </div>
+        
+        <!-- Mock Progress Indicator -->
+        <div class="hidden flex items-center bg-surface p-4 rounded-xl border border-primary/10 gap-4 mt-2" id="upload-progress">
+          <div class="w-12 h-12 bg-primary-fixed-dim/20 rounded-lg flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-primary">video_file</span>
+          </div>
+          <div class="flex-grow text-left">
+            <div class="flex justify-between items-end mb-2">
+              <span class="font-body-md text-body-md font-semibold text-on-surface truncate pr-4 max-w-[200px] md:max-w-xs" id="filename-display">video_file.mp4</span>
+              <span class="font-label-caps text-label-caps text-primary" id="progressPercentText">Uploading... 0%</span>
+            </div>
+            <div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+              <div class="bg-primary h-1.5 rounded-full w-[0%] transition-all duration-300 ease-out" id="progressFillBar"></div>
+            </div>
+          </div>
+          <button class="text-outline hover:text-error transition-colors p-2 shrink-0" type="button" id="btnCancelUpload">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="h-px w-full bg-outline-variant/20"></div>
+      
+      <!-- Form Fields Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+        <!-- Title -->
+        <div class="flex flex-col gap-2 md:col-span-2">
+          <label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="title">Campaign Title</label>
+          <input class="w-full bg-surface-container-lowest border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none" id="title" placeholder="e.g., Weekend Lake Cleanup Initiative" type="text" required/>
+        </div>
+        <!-- Location -->
+        <div class="flex flex-col gap-2">
+          <label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="location">Operation Zone</label>
+          <div class="relative">
+            <select class="w-full appearance-none bg-surface-container-lowest border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 pr-10 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none" id="location" required>
+              <option disabled="" selected="" value="">Select designated area</option>
+              <option value="Bidar Fort Perimeter">Bidar Fort Perimeter</option>
+              <option value="Shivaji Chowk District">Shivaji Chowk District</option>
+              <option value="Papanash Lake">Papanash Lake</option>
+              <option value="Other Civic Zone">Other Civic Zone</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+          </div>
+        </div>
+        <!-- Category -->
+        <div class="flex flex-col gap-2">
+          <label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="category">Environmental Category</label>
+          <div class="relative">
+            <select class="w-full appearance-none bg-surface-container-lowest border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 pr-10 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none" id="category" required>
+              <option disabled="" selected="" value="">Select classification</option>
+              <option value="Waste & Plastic Eradication">Waste &amp; Plastic Eradication</option>
+              <option value="Afforestation / Tree Plantation">Afforestation / Tree Plantation</option>
+              <option value="Civic Awareness Drive">Civic Awareness Drive</option>
+              <option value="Water Body Restoration">Water Body Restoration</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+          </div>
+        </div>
+        <!-- Description -->
+        <div class="flex flex-col gap-2 md:col-span-2">
+          <div class="flex justify-between items-end">
+            <label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="description">Field Notes / Description</label>
+            <span class="font-label-caps text-label-caps text-outline" id="char-count">0 / 300</span>
+          </div>
+          <textarea class="w-full bg-surface-container-lowest border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none resize-none" id="description" placeholder="Detail the scope of work, participants, and immediate ecological impact..." rows="4" required></textarea>
+        </div>
+      </div>
+      
+      <!-- Workflow Visualization -->
+      <div class="bg-surface-container-low rounded-2xl p-6 border border-primary/5">
+        <h4 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider mb-6 text-left">Submission Lifecycle</h4>
+        <div class="flex items-center justify-between relative">
+          <!-- Connecting Line -->
+          <div class="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-0.5 bg-outline-variant/30 z-0"></div>
+          <!-- Step 1 -->
+          <div class="relative z-10 flex flex-col items-center gap-3 bg-surface-container-low px-2">
+            <div class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg shadow-primary/20" id="step1Circle">
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">upload</span>
+            </div>
+            <span class="font-label-caps text-label-caps text-primary">Upload</span>
+          </div>
+          <!-- Step 2 -->
+          <div class="relative z-10 flex flex-col items-center gap-3 bg-surface-container-low px-2">
+            <div class="w-12 h-12 rounded-full bg-surface border-2 border-outline-variant text-outline flex items-center justify-center" id="step2Circle">
+              <span class="material-symbols-outlined">policy</span>
+            </div>
+            <span class="font-label-caps text-label-caps text-outline" id="step2Text">Verification</span>
+          </div>
+          <!-- Step 3 -->
+          <div class="relative z-10 flex flex-col items-center gap-3 bg-surface-container-low px-2">
+            <div class="w-12 h-12 rounded-full bg-surface border-2 border-outline-variant text-outline flex items-center justify-center" id="step3Circle">
+              <span class="material-symbols-outlined">public</span>
+            </div>
+            <span class="font-label-caps text-label-caps text-outline">Impact Registry</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Validation & Submit -->
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 mt-2 border-t border-outline-variant/20">
+        <div class="flex items-center gap-2 text-primary-container bg-primary-fixed-dim/20 px-4 py-2 rounded-full">
+          <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+          <span class="font-label-caps text-label-caps">Identity Verified</span>
+        </div>
+        <button id="submitBtn" class="w-full md:w-auto bg-primary hover:bg-surface-tint text-on-primary font-headline-md text-headline-md font-bold py-4 px-10 rounded-full transition-all duration-300 shadow-[0_10px_25px_rgba(0,56,32,0.2)] hover:shadow-[0_15px_35px_rgba(0,56,32,0.3)] hover:-translate-y-1 relative overflow-hidden group" type="submit">
+          <span class="relative z-10 flex items-center justify-center gap-2" id="submitBtnTextSpan">
+            Submit Environmental Action
+            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" id="submitBtnIconSpan">arrow_forward</span>
+          </span>
+          <!-- Inner glow effect -->
+          <div class="absolute inset-0 bg-gradient-to-t from-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <!-- Toast Notification System -->
+  <div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-inverse-on-surface px-6 py-3 rounded-full shadow-lg flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-[110]" id="toast">
+    <span id="toastIcon" class="material-symbols-outlined text-xl text-primary-fixed">check_circle</span>
+    <span id="toastMessage" class="text-sm font-medium">Action completed successfully.</span>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Particle generation for background atmosphere
+    const container = document.getElementById('particles-container');
+    const particleCount = 15;
+
+    for (let i = 0; i < particleCount; i++) {
+        createParticle();
+    }
+
+    function createParticle() {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        const size = Math.random() * 8 + 4; // 4px to 12px
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        
+        particle.style.left = `${Math.random() * 98}vw`;
+        
+        const duration = Math.random() * 20 + 10; // 10s to 30s
+        particle.style.animationDuration = `${duration}s`;
+        
+        const delay = Math.random() * 20; // 0s to 20s
+        particle.style.animationDelay = `-${delay}s`;
+        
+        container.appendChild(particle);
+    }
+  </script>
+  <script src="upload.js"></script>
+</body>
+</html>

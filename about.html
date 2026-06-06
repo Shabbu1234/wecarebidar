@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Movement Manifesto | WeCareBidar</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#293040",
+                        "tertiary-container": "#cca730",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "on-secondary-fixed": "#1c1c19",
+                        "inverse-primary": "#95d4ac",
+                        "surface-variant": "#dce2f7",
+                        "primary-fixed": "#b0f1c7",
+                        "on-surface-variant": "#404942",
+                        "surface-container": "#e9edff",
+                        "secondary-fixed-dim": "#c8c6c2",
+                        "primary-fixed-dim": "#95d4ac",
+                        "on-tertiary-container": "#4f3d00",
+                        "background": "#f9f9ff",
+                        "tertiary": "#735c00",
+                        "primary-container": "#0f5132",
+                        "surface-container-high": "#e1e8fd",
+                        "secondary": "#5f5e5b",
+                        "secondary-container": "#e5e2dd",
+                        "on-surface": "#141b2b",
+                        "surface-container-highest": "#dce2f7",
+                        "surface": "#f9f9ff",
+                        "secondary-fixed": "#e5e2dd",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#002111",
+                        "on-error-container": "#93000a",
+                        "outline": "#707971",
+                        "on-secondary-fixed-variant": "#474743",
+                        "surface-container-low": "#f1f3ff",
+                        "on-primary-fixed-variant": "#0f5132",
+                        "surface-tint": "#2d6a48",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "inverse-on-surface": "#edf0ff",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#ffe088",
+                        "outline-variant": "#c0c9c0",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d3daef",
+                        "on-secondary-container": "#656461",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#003820",
+                        "on-primary-container": "#84c39b",
+                        "on-background": "#141b2b",
+                        "surface-bright": "#f9f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1280px",
+                        "gutter": "32px",
+                        "section-gap": "120px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "20px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Montserrat"],
+                        "stat-display": ["Montserrat"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "stat-display": ["48px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "display-lg-mobile": ["40px", { "lineHeight": "1.2", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 56, 32, 0.1);
+        }
+        .dark .glass-panel {
+            background: rgba(41, 48, 64, 0.7);
+            border: 1px solid rgba(149, 212, 172, 0.1);
+        }
+        .eco-glow {
+            box-shadow: inset 0 0 20px rgba(204, 167, 48, 0.15);
+        }
+        .soft-shadow {
+            box-shadow: 0px 20px 50px rgba(0, 0, 0, 0.08);
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        
+        /* Particle animation */
+        .particle {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            background: rgba(15, 81, 50, 0.12);
+            animation: float 20s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Particle Container -->
+    <div class="fixed inset-0 pointer-events-none z-0" id="particles"></div>
+
+    <!-- Sandbox Mode Indicator Banner -->
+    <div class="fixed top-[88px] w-full z-45 bg-amber-500 text-amber-950 font-semibold text-xs py-2 px-6 text-center border-b border-amber-600/30 shadow-sm transition-all duration-300" id="sandboxBanner" style="display: none;">
+        ⚠️ Running in <strong>Developer Sandbox Mode</strong> (No live SMS OTP cost. RLS bypassed via sandbox access keys).
+    </div>
+
+    <!-- TopNavBar -->
+    <nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md dark:bg-inverse-surface/80 border-b border-primary/10 shadow-sm transition-all duration-300" id="mainNav">
+        <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+            <a class="font-display-lg text-headline-md font-extrabold text-primary dark:text-inverse-primary tracking-tighter hover:opacity-80 transition-opacity flex items-center gap-2" href="index.html">
+                <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+                WeCareBidar
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center gap-8">
+                <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="feed.html">Impact</a>
+                <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="upload.html">Upload</a>
+                <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="leaderboard.html">The Collective</a>
+                <a class="text-primary dark:text-inverse-primary font-bold border-b-2 border-primary pb-1 font-body-md text-body-md" href="about.html">Manifesto</a>
+                <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="profile.html">Profile</a>
+            </div>
+            
+            <a id="desktopJoinBtn" href="auth.html" class="hidden md:flex items-center justify-center px-6 py-3 bg-primary text-on-primary font-body-md font-semibold rounded hover:bg-primary/90 transition-all shadow-md hover:shadow-lg active:scale-95 duration-200 ease-in-out relative overflow-hidden group text-center">
+                <span class="relative z-10" id="desktopJoinBtnText">Join The Revolution</span>
+                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
+            </a>
+            
+            <!-- Mobile Menu Toggle -->
+            <button aria-label="Toggle menu" class="md:hidden text-primary p-2" id="mobileMenuBtn">
+                <span class="material-symbols-outlined text-3xl">menu</span>
+            </button>
+        </div>
+
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobileMenu" class="hidden md:hidden border-t border-primary/10 bg-surface px-margin-mobile py-6 space-y-4 shadow-inner">
+            <div id="mobileUserHeader" class="hidden flex items-center gap-3 pb-4 border-b border-primary/5">
+                <img id="mobileUserAvatar" src="" class="w-10 h-10 rounded-full object-cover border border-primary/10" alt="Avatar">
+                <div>
+                    <div id="mobileUserFullName" class="font-headline-md text-sm font-bold text-on-surface">Loading...</div>
+                    <div id="mobileUserStatsCount" class="text-xs text-on-surface-variant">0 uploads verified</div>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2 pb-4 border-b border-primary/5">
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="feed.html">Impact</a>
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="upload.html">Upload</a>
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="leaderboard.html">The Collective</a>
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block font-bold text-primary" href="about.html">Manifesto</a>
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="profile.html">Profile</a>
+            </div>
+            <div class="flex gap-2">
+                <a id="mobileJoinBtn" href="auth.html" class="flex-1 bg-primary text-on-primary py-3 rounded-lg text-center text-xs font-bold uppercase block">Join The Revolution</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-[80px] flex-grow">
+        <!-- Hero Section -->
+        <section class="relative min-h-[819px] flex items-center justify-center overflow-hidden px-margin-mobile md:px-margin-desktop py-section-gap">
+            <div class="absolute inset-0 z-0">
+                <img class="w-full h-full object-cover object-center opacity-80" data-alt="A breathtaking cinematic wide shot of a lush, green landscape at sunrise, representing environmental stewardship. The scene features rolling hills and a diverse canopy of trees bathed in soft, golden morning light. The overarching aesthetic is premium, hopeful, and serene, utilizing a color palette of deep forest greens, earthy beige, and warm eco-gold accents to evoke a sense of prestigious conservation. The mood is visionary and authoritative." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8eYiSUEGqSKmtO6jK_x5CUHDJodloF8oa8jfjQr9FMnbt41h7IQ3_ocjCOR_sD1zg2qHt2iTcTmnBrTpQ8ibsvrpEKi55Zu8EAIFRAA8xqNNnOU8WQl04UK9wMCqQ_0iigsZIg5kowwXerTmGqF5CkC9PtfUnZmdILoIv2oqkFTyIz905alouE6skVnvZN3SIrUoyivhcgGIhCxPRssj0ByKuPjNu9VGAGLFhRs7QD1GQRcYXilTtfNf7VXfQKoMgrAOsgCq9wII"/>
+                <div class="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background"></div>
+            </div>
+            <div class="relative z-10 max-w-container-max mx-auto text-center mt-20">
+                <span class="inline-block px-4 py-1.5 mb-6 rounded-full border border-primary/20 bg-surface/50 backdrop-blur-sm text-primary font-label-caps text-label-caps tracking-widest uppercase animate-fade-in-up">The Movement</span>
+                <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-8 max-w-4xl mx-auto animate-fade-in-up stagger-1 drop-shadow-sm">
+                    WeCareBidar Is <br/><span class="text-primary italic">More Than A Platform</span>
+                </h1>
+                <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-12 animate-fade-in-up stagger-2">
+                    A youth-powered environmental revolution dedicated to architectural stewardship and a greener tomorrow. We blend high-end technology with the organic warmth of our community.
+                </p>
+                <div class="animate-fade-in-up stagger-3">
+                    <a href="#narrativeSection" class="inline-flex px-8 py-4 bg-primary text-on-primary font-body-lg font-semibold rounded-lg hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl items-center gap-3 mx-auto group">
+                        Discover Our Story
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_downward</span>
+                    </a>
+                </div>
+            </div>
+        </section>ion>
+
+        <!-- Our Story & Mission -->
+        <section id="narrativeSection" class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface relative scroll-mt-24">
+            <div class="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-12 gap-gutter items-center px-4">
+                <div class="lg:col-span-5 space-y-8 text-left">
+                    <h2 class="font-headline-lg text-headline-lg text-on-surface">A Narrative of Change</h2>
+                    <div class="w-16 h-1 bg-tertiary-container rounded-full"></div>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                        We recognized a profound disconnect between civic intention and environmental action. WeCareBidar was forged not just as a tool, but as a digital ecosystem empowering citizens to reclaim their architectural and natural heritage.
+                    </p>
+                    <p class="font-body-md text-body-md text-on-surface-variant/80">
+                        By integrating sophisticated data mapping with grassroots mobilization, we transform passive observation into active stewardship. Every documented issue is a step towards a restored landscape.
+                    </p>
+                </div>
+                <div class="lg:col-span-6 lg:col-start-7 relative mt-12 lg:mt-0">
+                    <div class="glass-panel p-4 rounded-2xl soft-shadow relative z-10 transform lg:-translate-y-8">
+                        <img class="w-full h-auto rounded-xl object-cover aspect-[4/3]" data-alt="A premium, editorial-style photograph showing a diverse group of young adults engaged in community planning around a large, modern table. They are reviewing architectural plans and environmental data on sleek tablets. The lighting is bright and natural, coming from large windows, highlighting the high-end minimalism of the space. The color scheme relies on crisp whites, deep charcoal, and vibrant emerald green accents. The mood is collaborative, serious, and visionary." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPzflYseHiTHUBKvlI2nDyOqg1JcwS1ykOl6TQJpjtzjfHBNgCVz0lCjT0CixWhRbdHkq9rsGdCiDsVKrI-QCjyBoD8iwqY0qUHtD2IM8VOm0DWoOOMPIyVKy4rlH0x2k76j9xm1YRPEJPRtDvug_sqDpOgEGKUM-xg2q-oLMOlhtuevOCS9vtqN8gIo57uS0yxRlI-KfHuvdFIbIGhqyQ0ok7KNOQSigAa4F2UE21sttD8V9n2gzFl5ZWTfwvx4fZak5e5S764GU"/>
+                    </div>
+                    <!-- Decorative element -->
+                    <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-primary-fixed/20 rounded-full blur-3xl -z-10"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-section-gap bg-inverse-surface dark:bg-black border-t border-tertiary/20 relative z-20 mt-auto">
+        <div class="flex flex-col md:flex-row justify-between items-center px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto gap-8">
+            <div class="font-display-lg text-headline-md text-tertiary-fixed font-bold">
+                WeCareBidar
+            </div>
+            <div class="flex flex-wrap justify-center gap-6 md:gap-8">
+                <a class="text-on-surface-variant/60 hover:text-tertiary-fixed transition-colors font-label-caps text-label-caps uppercase tracking-widest focus:ring-2 focus:ring-tertiary-container outline-none rounded p-1" href="#">Charter</a>
+                <a class="text-on-surface-variant/60 hover:text-tertiary-fixed transition-colors font-label-caps text-label-caps uppercase tracking-widest focus:ring-2 focus:ring-tertiary-container outline-none rounded p-1" href="#">Privacy</a>
+                <a class="text-on-surface-variant/60 hover:text-tertiary-fixed transition-colors font-label-caps text-label-caps uppercase tracking-widest focus:ring-2 focus:ring-tertiary-container outline-none rounded p-1" href="contact.html">Contact</a>
+                <a class="text-tertiary-fixed font-bold font-label-caps text-label-caps uppercase tracking-widest focus:ring-2 focus:ring-tertiary-container outline-none rounded p-1" href="#">Global Mission</a>
+            </div>
+            <div class="font-body-md text-body-md text-tertiary dark:text-tertiary-fixed text-center md:text-right">
+                © 2026 WeCareBidar. Architectural Stewardship for a Greener Tomorrow.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Leaf particles generator
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            const particleCount = 15;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 12 + 4; // 4px to 16px
+                const left = Math.random() * 98; // 0% to 98vw
+                const duration = Math.random() * 18 + 12; // 12s to 30s
+                const delay = Math.random() * 10; // 0s to 10s
+
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${left}vw`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `-${delay}s`;
+
+                container.appendChild(particle);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', createParticles);
+
+        // Simple scroll effect for navbar shadow and background opacity
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('mainNav');
+            if (nav) {
+                if (window.scrollY > 50) {
+                    nav.classList.add('shadow-md');
+                    nav.classList.replace('bg-surface/80', 'bg-surface/95');
+                } else {
+                    nav.classList.remove('shadow-md');
+                    nav.classList.replace('bg-surface/95', 'bg-surface/80');
+                }
+            }
+        });
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    </script>
+    <script src="about.js"></script>
+</body>
+</html>

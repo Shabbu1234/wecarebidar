@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Mission Control Dashboard | ECO-COMMAND</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary": "#ffffff",
+                      "surface-bright": "#f9f9ff",
+                      "surface-container-highest": "#dce2f7",
+                      "surface-container-high": "#e1e8fd",
+                      "inverse-surface": "#293040",
+                      "surface-tint": "#2d6a48",
+                      "on-tertiary-fixed": "#241a00",
+                      "on-primary-container": "#84c39b",
+                      "tertiary-container": "#cca730",
+                      "error-container": "#ffdad6",
+                      "surface-container-low": "#f1f3ff",
+                      "primary-container": "#0f5132",
+                      "primary-fixed-dim": "#95d4ac",
+                      "surface-container": "#e9edff",
+                      "on-secondary": "#ffffff",
+                      "on-surface-variant": "#404942",
+                      "on-primary-fixed-variant": "#0f5132",
+                      "error": "#ba1a1a",
+                      "secondary-fixed-dim": "#c8c6c2",
+                      "background": "#f9f9ff",
+                      "secondary-container": "#e5e2dd",
+                      "on-background": "#141b2b",
+                      "on-tertiary-container": "#4f3d00",
+                      "primary": "#003820",
+                      "on-error-container": "#93000a",
+                      "outline-variant": "#c0c9c0",
+                      "on-secondary-fixed": "#1c1c19",
+                      "outline": "#707971",
+                      "secondary-fixed": "#e5e2dd",
+                      "surface-variant": "#dce2f7",
+                      "secondary": "#5f5e5b",
+                      "inverse-primary": "#95d4ac",
+                      "tertiary-fixed": "#ffe088",
+                      "surface": "#f9f9ff",
+                      "inverse-on-surface": "#edf0ff",
+                      "surface-dim": "#d3daef",
+                      "on-secondary-container": "#656461",
+                      "on-error": "#ffffff",
+                      "tertiary": "#735c00",
+                      "tertiary-fixed-dim": "#e9c349",
+                      "on-primary-fixed": "#002111",
+                      "primary-fixed": "#b0f1c7",
+                      "on-secondary-fixed-variant": "#474743",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-surface": "#141b2b",
+                      "on-tertiary-fixed-variant": "#574500"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "20px",
+                      "unit": "8px",
+                      "section-gap": "120px",
+                      "gutter": "32px",
+                      "container-max": "1280px",
+                      "margin-desktop": "64px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Montserrat"],
+                      "body-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-lg": ["Montserrat"],
+                      "display-lg-mobile": ["Montserrat"],
+                      "headline-md": ["Montserrat"],
+                      "stat-display": ["Montserrat"],
+                      "label-caps": ["Montserrat"]
+              },
+              "fontSize": {
+                      "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                      "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                      "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                      "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                      "display-lg-mobile": ["40px", { "lineHeight": "1.2", "fontWeight": "800" }],
+                      "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "700" }],
+                      "stat-display": ["48px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                      "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }]
+              }
+            }
+          }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f9f9ff;
+            color: #141b2b;
+            background-image: radial-gradient(circle at 50% 0%, rgba(149, 212, 172, 0.15) 0%, transparent 75%);
+            background-attachment: fixed;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 56, 32, 0.1);
+        }
+        .stat-glow {
+            text-shadow: 0 0 10px rgba(132, 195, 155, 0.5);
+        }
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            background: rgba(15, 81, 50, 0.08);
+            animation: float 20s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col md:flex-row pt-20 md:pt-0 relative overflow-x-hidden">
+
+    <!-- Atmospheric Particles -->
+    <div class="fixed inset-0 pointer-events-none z-0" id="particles"></div>
+
+    <!-- Sandbox Mode Indicator Banner -->
+    <div class="fixed top-20 md:top-0 left-0 w-full z-45 bg-amber-500 text-amber-950 font-semibold text-xs py-2 px-6 text-center border-b border-amber-600/30 shadow-sm transition-all duration-300" id="sandboxBanner" style="display: none;">
+        ⚠️ Running in <strong>Developer Sandbox Mode</strong> (No live SMS OTP cost. RLS bypassed via sandbox access keys).
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md" id="loginModal">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl shadow-2xl flex flex-col gap-6 text-left mx-margin-mobile">
+            <div class="text-center">
+                <h2 class="font-headline-lg text-2xl font-black text-primary uppercase tracking-tight mb-2">Admin Access</h2>
+                <p class="text-sm text-on-surface-variant">Enter decryption or service token key to authenticate.</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div class="flex flex-col gap-2">
+                    <label class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase tracking-wider" for="adminToken">Decryption Key / Token</label>
+                    <input 
+                        type="password" 
+                        id="adminToken" 
+                        class="w-full bg-white/80 border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none" 
+                        placeholder="Enter token string" 
+                        required
+                    >
+                </div>
+                <button type="submit" class="w-full py-4 bg-primary text-on-primary font-headline-md text-sm font-bold rounded-lg shadow-lg hover:bg-primary-container transition-all">
+                    Authenticate Credentials
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Webhook Setup Modal -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md hidden" id="webhookModal">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl shadow-2xl flex flex-col gap-6 text-left mx-margin-mobile">
+            <div class="text-center">
+                <h2 class="font-headline-lg text-2xl font-black text-primary uppercase tracking-tight mb-2">Webhook Settings</h2>
+                <p class="text-sm text-on-surface-variant">Configure target activepieces webhook endpoint.</p>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase tracking-wider" for="webhookUrlInput">AntGvity Webhook URL</label>
+                <input 
+                    type="url" 
+                    id="webhookUrlInput" 
+                    class="w-full bg-white/80 border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none" 
+                    placeholder="https://cloud.activepieces.com/api/v1/webhooks/..." 
+                >
+            </div>
+            <div class="flex gap-3">
+                <button id="btnSaveWebhook" class="flex-1 py-3 bg-primary text-on-primary font-headline-md text-sm font-bold rounded-lg shadow-lg hover:bg-primary-container transition-all">
+                    Save Settings
+                </button>
+                <button id="btnCloseWebhook" class="flex-1 py-3 border-2 border-outline-variant text-on-surface-variant font-headline-md text-sm font-bold rounded-lg hover:bg-surface-dim transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification System -->
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-inverse-on-surface px-6 py-3 rounded-full shadow-lg flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-[110]" id="toast">
+        <span id="toastIcon" class="text-xl">🌱</span>
+        <span id="toastMessage" class="text-sm font-medium">Action completed successfully.</span>
+    </div>
+
+    <!-- TopAppBar (Mobile Only) -->
+    <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile h-20 bg-primary text-on-primary backdrop-blur-md bg-opacity-80 border-b border-primary-container md:hidden shadow-[0px_20px_50px_rgba(0,0,0,0.08)]">
+        <div class="font-headline-md text-headline-md font-Montserrat font-black tracking-tight text-on-primary flex items-center gap-1.5">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">eco</span>
+            ECO-COMMAND
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="profile.html" class="flex items-center">
+                <img id="mobileUserAvatar" alt="User Profile Avatar" class="w-8 h-8 rounded-full border-2 border-primary-container object-cover" src="https://api.dicebear.com/7.x/bottts/svg?seed=Admin"/>
+            </a>
+        </div>
+    </header>
+
+    <!-- SideNavBar (Desktop) -->
+    <nav class="hidden md:flex flex-col bg-inverse-surface text-primary-fixed fixed left-0 top-0 h-full w-64 p-4 z-40 bg-opacity-95 backdrop-blur-xl border-r border-outline-variant shadow-2xl">
+        <div class="mb-8 px-4 mt-6">
+            <div class="flex items-center gap-3 mb-6">
+                <img id="sidebarUserAvatar" alt="Mission Control Identity" class="w-10 h-10 rounded-full border-2 border-primary-fixed object-cover" src="https://api.dicebear.com/7.x/bottts/svg?seed=Admin"/>
+                <div>
+                    <h2 class="font-body-md text-body-md font-Inter font-bold text-white truncate max-w-[120px]" id="sidebarUserFullName">Mission Control</h2>
+                    <p class="font-label-caps text-[9px] text-primary-fixed tracking-widest uppercase" id="sidebarUserRole">Status: ACTIVE</p>
+                </div>
+            </div>
+            <a href="upload.html" class="w-full bg-primary-fixed text-on-primary-fixed font-body-md text-body-md font-Inter font-bold py-3 rounded-lg shadow-[0_4px_14px_0_rgba(176,241,199,0.39)] hover:bg-primary-fixed-dim transition-all duration-300 block text-center">
+                New Mission
+            </a>
+        </div>
+        <ul class="space-y-2 flex-grow">
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md font-Inter text-surface-variant hover:bg-surface-variant/10 hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="index.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">dashboard</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md font-Inter text-surface-variant hover:bg-surface-variant/10 hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="upload.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">cloud_upload</span>
+                    Upload
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md font-Inter text-surface-variant hover:bg-surface-variant/10 hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="profile.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">person</span>
+                    Profile
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-lg font-body-md text-body-md font-Inter font-bold shadow-md" href="admin.html">
+                    <span class="material-symbols-outlined text-on-primary-container">admin_panel_settings</span>
+                    Admin Dashboard
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md font-Inter text-surface-variant hover:bg-surface-variant/10 hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="moderation.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">fact_check</span>
+                    Review Center
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md font-Inter text-surface-variant hover:bg-surface-variant/10 hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="analytics.html">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">analytics</span>
+                    Analytics
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md font-Inter text-surface-variant hover:bg-surface-variant/10 hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="#">
+                    <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">settings_suggest</span>
+                    Configuration
+                </a>
+            </li>
+        </ul>
+        <div class="mt-auto border-t border-outline-variant pt-4">
+            <ul class="space-y-2">
+                <li>
+                    <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md font-Inter text-surface-variant hover:bg-surface-variant/10 hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group" href="#">
+                        <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">lock</span>
+                        Security
+                    </a>
+                </li>
+                <li>
+                    <button id="btnLogout" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg font-body-md text-body-md font-Inter text-surface-variant hover:bg-surface-variant/10 hover:bg-primary-fixed-dim/20 transition-all duration-300 hover:translate-x-1 group text-left">
+                        <span class="material-symbols-outlined text-surface-variant group-hover:text-primary-fixed">logout</span>
+                        Log Out
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content Canvas -->
+    <main class="flex-grow md:ml-64 p-margin-mobile md:p-gutter max-w-container-max mx-auto w-full z-10 relative">
+        <header class="mb-12 mt-8 md:mt-0 text-left">
+            <h1 class="font-display-lg text-[36px] md:text-display-lg text-on-background mb-2 tracking-tight">Command Center</h1>
+            <p class="font-body-lg text-body-lg text-on-surface-variant">Real-time executive overview of environmental operations.</p>
+        </header>
+
+        <!-- Bento Grid Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-unit md:gap-gutter auto-rows-[200px]">
+            <!-- Real-Time Monitoring -->
+            <section class="col-span-1 md:col-span-8 row-span-2 glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-headline-md text-headline-md text-primary flex items-center gap-2">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">monitor_heart</span>
+                            Real-Time Monitoring
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <button id="btnConfigureWebhook" class="text-sm bg-surface-container hover:bg-primary-fixed text-primary px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-colors">
+                                <span class="material-symbols-outlined text-sm">settings</span>
+                                Webhook Settings
+                            </button>
+                            <span class="font-label-caps text-[10px] bg-primary-container text-on-primary-container px-3 py-1.5 rounded-full flex items-center gap-2 font-bold">
+                                <span class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span>
+                                LIVE
+                            </span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- Stat Card 1 -->
+                        <div class="bg-white/80 rounded-xl p-4 border border-outline-variant/30 flex flex-col justify-center items-center text-center">
+                            <span class="material-symbols-outlined text-primary mb-2 text-3xl">pending_actions</span>
+                            <span id="statReviewQueue" class="font-stat-display text-3xl text-primary font-bold stat-glow">0</span>
+                            <span class="font-label-caps text-[10px] text-on-surface-variant mt-2 font-bold uppercase">Review Queue</span>
+                        </div>
+                        <!-- Stat Card 2 -->
+                        <div class="bg-white/80 rounded-xl p-4 border border-outline-variant/30 flex flex-col justify-center items-center text-center">
+                            <span class="material-symbols-outlined text-primary mb-2 text-3xl">group</span>
+                            <span id="statActiveMods" class="font-stat-display text-3xl text-primary font-bold stat-glow">0</span>
+                            <span class="font-label-caps text-[10px] text-on-surface-variant mt-2 font-bold uppercase">Active Rebels</span>
+                        </div>
+                        <!-- Stat Card 3 -->
+                        <div class="bg-white/80 rounded-xl p-4 border border-outline-variant/30 flex flex-col justify-center items-center text-center relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-t from-primary-fixed/20 to-transparent"></div>
+                            <span class="material-symbols-outlined text-primary mb-2 text-3xl z-10">health_and_safety</span>
+                            <span id="statPlatformHealth" class="font-stat-display text-3xl text-primary font-bold stat-glow z-10">100%</span>
+                            <span class="font-label-caps text-[10px] text-on-surface-variant mt-2 font-bold uppercase z-10">Platform Health</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Environmental Impact Metrics -->
+            <section class="col-span-1 md:col-span-4 row-span-2 glass-panel rounded-2xl p-6 flex flex-col justify-between">
+                <h2 class="font-headline-md text-headline-md text-primary mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">eco</span>
+                    Impact Metrics
+                </h2>
+                <div class="space-y-6 flex-grow flex flex-col justify-center">
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase">Trees Supported</span>
+                            <span id="statTreesText" class="font-headline-md text-xl text-primary font-bold">0</span>
+                        </div>
+                        <div class="w-full bg-surface-container-high rounded-full h-2">
+                            <div id="statTreesBar" class="bg-primary h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase">Waste Cleaned</span>
+                            <span id="statWasteText" class="font-headline-md text-xl text-primary font-bold">0 kg</span>
+                        </div>
+                        <div class="w-full bg-surface-container-high rounded-full h-2">
+                            <div id="statWasteBar" class="bg-tertiary-container h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Activity Center Event Feed -->
+            <section class="col-span-1 md:col-span-12 row-span-2 glass-panel rounded-2xl p-6 overflow-hidden flex flex-col">
+                <h2 class="font-headline-md text-headline-md text-primary mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined">rss_feed</span>
+                    Activity Center
+                </h2>
+                <div id="activityFeedContainer" class="flex-grow overflow-y-auto pr-2 space-y-4 text-left">
+                    <!-- Event Loader placeholder -->
+                    <div class="py-12 text-center text-on-surface-variant italic" id="feedPlaceholder">
+                        Retrieving recent action registry logs...
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-6 px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center bg-primary text-on-primary font-label-caps text-[10px] border-t border-primary-container mt-section-gap md:ml-64 relative z-10">
+        <div class="mb-4 md:mb-0 opacity-80 hover:opacity-100 transition-opacity">
+            © 2026 ENVIRONMENTAL MISSION CONTROL. SECURE ACCESS ONLY.
+        </div>
+        <div class="flex gap-4">
+            <a class="text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="contact.html">Contact Us</a>
+            <a class="text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+            <a class="text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+            <a class="text-primary-fixed-dim hover:text-primary-fixed transition-colors opacity-80 hover:opacity-100" href="#">Mission Protocols</a>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Leaf particles generator
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            const particleCount = 12;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 10 + 4; // 4px to 14px
+                const left = Math.random() * 98; // 0% to 98vw
+                const duration = Math.random() * 18 + 12; // 12s to 30s
+                const delay = Math.random() * 10; // 0s to 10s
+
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${left}vw`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `-${delay}s`;
+
+                container.appendChild(particle);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', createParticles);
+    </script>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+{
+  "name": "WeCareBidar Zero-Residue Social Distributor",
+  "trigger": {
+    "name": "webhook_trigger",
+    "displayName": "Webhook Trigger",
+    "type": "WEBHOOK",
+    "settings": {
+      "inputValidation": {
+        "type": "object",
+        "properties": {
+          "videoId": { "type": "string" },
+          "videoUrl": { "type": "string" },
+          "user_description": { "type": "string" },
+          "bucketFileName": { "type": "string" }
+        },
+        "required": ["videoId", "videoUrl", "user_description", "bucketFileName"]
+      }
+    },
+    "valid": true
+  },
+  "actions": [
+    {
+      "name": "invideo_ai_enrichment",
+      "displayName": "InVideo AI Enrichment",
+      "type": "PIECE",
+      "settings": {
+        "pieceName": "invideo",
+        "pieceVersion": "1.0.0",
+        "actionName": "generate_social_copy",
+        "input": {
+          "prompt": "Create social media copy for a youth environment movement called 'WeCareBidar'. The user submitted the following description: '{{trigger.user_description}}'. Provide the following JSON properties: 1. 'title': A catchy, high-engagement title prefixed with '[WeCareBidar]'. 2. 'caption': An inspiring, youth-driven caption emphasizing local environmental agency. 3. 'tags': A string of space-separated tags including #WeCareBidar, #CleanBidar, #YouthForEnvironment, #GreenRevolution.",
+          "temperature": 0.7
+        }
+      },
+      "valid": true
+    },
+    {
+      "name": "multi_platform_distribution_router",
+      "displayName": "Multi-Platform Router Blast",
+      "type": "BRANCH",
+      "settings": {
+        "branches": [
+          {
+            "name": "youtube_shorts_branch",
+            "displayName": "Branch 1: YouTube Shorts",
+            "actions": [
+              {
+                "name": "youtube_post_short",
+                "displayName": "Post YouTube Short",
+                "type": "PIECE",
+                "settings": {
+                  "pieceName": "youtube",
+                  "pieceVersion": "2.0.1",
+                  "actionName": "upload_video",
+                  "input": {
+                    "title": "{{invideo_ai_enrichment.title}}",
+                    "description": "{{invideo_ai_enrichment.caption}}\n\n{{invideo_ai_enrichment.tags}}",
+                    "videoUrl": "{{trigger.videoUrl}}",
+                    "status": "public",
+                    "category": "Education"
+                  }
+                },
+                "valid": true
+              }
+            ]
+          },
+          {
+            "name": "meta_reels_branch",
+            "displayName": "Branch 2: Instagram & Facebook Reels",
+            "actions": [
+              {
+                "name": "instagram_post_reel",
+                "displayName": "Post Instagram Reel",
+                "type": "PIECE",
+                "settings": {
+                  "pieceName": "instagram",
+                  "pieceVersion": "1.2.0",
+                  "actionName": "publish_reel",
+                  "input": {
+                    "videoUrl": "{{trigger.videoUrl}}",
+                    "caption": "{{invideo_ai_enrichment.caption}}\n\n{{invideo_ai_enrichment.tags}}"
+                  }
+                },
+                "valid": true
+              },
+              {
+                "name": "facebook_share_reel",
+                "displayName": "Share to Facebook Page",
+                "type": "PIECE",
+                "settings": {
+                  "pieceName": "facebook-pages",
+                  "pieceVersion": "1.1.0",
+                  "actionName": "publish_video",
+                  "input": {
+                    "videoUrl": "{{trigger.videoUrl}}",
+                    "title": "{{invideo_ai_enrichment.title}}",
+                    "description": "{{invideo_ai_enrichment.caption}}\n\n{{invideo_ai_enrichment.tags}}"
+                  }
+                },
+                "valid": true
+              }
+            ]
+          },
+          {
+            "name": "blogger_branch",
+            "displayName": "Branch 3: Google Blogger",
+            "actions": [
+              {
+                "name": "blogger_create_post",
+                "displayName": "Create Blog Post",
+                "type": "PIECE",
+                "settings": {
+                  "pieceName": "google-blogger",
+                  "pieceVersion": "1.0.3",
+                  "actionName": "create_post",
+                  "input": {
+                    "blogId": "218185220890893397",
+                    "title": "{{invideo_ai_enrichment.title}}",
+                    "content": "<p><strong>{{invideo_ai_enrichment.caption}}</strong></p><p>Watch the environmental action clip here: <a href='{{trigger.videoUrl}}'>Temporary Video Link</a></p><p>Join the movement: <em>{{invideo_ai_enrichment.tags}}</em></p>",
+                    "isDraft": false
+                  }
+                },
+                "valid": true
+              }
+            ]
+          }
+        ]
+      },
+      "valid": true
+    },
+    {
+      "name": "zero_residue_storage_cleanup",
+      "displayName": "Purge Temporary Assets (Cleanup Logic)",
+      "type": "CODE",
+      "settings": {
+        "input": {
+          "videoId": "{{trigger.videoId}}",
+          "bucketFileName": "{{trigger.bucketFileName}}",
+          "supabaseUrl": "https://biykjcpjydcicwsgjgmi.supabase.co",
+          "supabaseServiceRoleKey": "your_supabase_service_role_key_here"
+        },
+        "sourceCode": {
+          "code": "/* Deployed code resides in cleanup_handler.js */"
+        }
+      },
+      "valid": true
+    }
+  ]
+}

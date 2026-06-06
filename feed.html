@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>WeCareBidar - Environmental Impact Gallery</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Montserrat:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Tailwind Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f9f9ff",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#e5e2dd",
+                        "primary-fixed-dim": "#95d4ac",
+                        "inverse-surface": "#293040",
+                        "surface-dim": "#d3daef",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffe088",
+                        "surface-container-low": "#f1f3ff",
+                        "outline-variant": "#c0c9c0",
+                        "inverse-primary": "#95d4ac",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-surface": "#141b2b",
+                        "outline": "#707971",
+                        "on-tertiary-container": "#4f3d00",
+                        "on-surface-variant": "#404942",
+                        "tertiary": "#735c00",
+                        "primary-container": "#0f5132",
+                        "inverse-on-surface": "#edf0ff",
+                        "on-secondary-fixed-variant": "#474743",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#e9edff",
+                        "on-primary-container": "#84c39b",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#e5e2dd",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "surface-container-highest": "#dce2f7",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#0f5132",
+                        "tertiary-container": "#cca730",
+                        "surface-tint": "#2d6a48",
+                        "on-secondary-container": "#656461",
+                        "on-background": "#141b2b",
+                        "surface-variant": "#dce2f7",
+                        "secondary-fixed-dim": "#c8c6c2",
+                        "on-primary-fixed": "#002111",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "surface-container-high": "#e1e8fd",
+                        "surface-bright": "#f9f9ff",
+                        "on-secondary-fixed": "#1c1c19",
+                        "secondary": "#5f5e5b",
+                        "primary": "#003820",
+                        "primary-fixed": "#b0f1c7",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "32px",
+                        "margin-desktop": "64px",
+                        "section-gap": "120px",
+                        "margin-mobile": "20px",
+                        "unit": "8px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Montserrat"],
+                        "display-lg": ["Montserrat"],
+                        "body-md": ["Inter"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "body-lg": ["Inter"],
+                        "stat-display": ["Montserrat"],
+                        "label-caps": ["Montserrat"],
+                        "headline-lg": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "700" }],
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "display-lg-mobile": ["40px", { "lineHeight": "1.2", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "stat-display": ["48px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Hide scrollbar for clean filter look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Glassmorphic elements */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 56, 32, 0.08);
+        }
+
+        /* Particle Animation Base */
+        .particle {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            background: rgba(15, 81, 50, 0.12);
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+
+        /* Hover video play transitions */
+        .feed-video-container video {
+            transition: transform 0.5s ease;
+        }
+        .feed-card:hover .feed-video-container video {
+            transform: scale(1.03);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md antialiased selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen relative overflow-x-hidden">
+
+    <!-- Particle Container -->
+    <div class="fixed inset-0 pointer-events-none z-0" id="particles"></div>
+
+    <!-- Sandbox Mode Indicator Banner -->
+    <div class="fixed top-[88px] w-full z-45 bg-amber-500 text-amber-950 font-semibold text-xs py-2 px-6 text-center border-b border-amber-600/30 shadow-sm transition-all duration-300" id="sandboxBanner" style="display: none;">
+        ⚠️ Running in <strong>Developer Sandbox Mode</strong> (No live SMS OTP cost. RLS bypassed via sandbox access keys).
+    </div>
+
+    <!-- TopNavBar -->
+    <header class="bg-surface/80 backdrop-blur-xl dark:bg-inverse-surface/80 docked full-width top-0 sticky z-50 border-b border-primary/10 dark:border-primary-fixed-dim/10 shadow-sm backdrop-blur-md">
+        <div class="flex justify-between items-center w-full px-margin-desktop py-6 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+            <a class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed-dim hover:opacity-80 transition-all duration-300 cursor-pointer flex items-center gap-2" href="index.html">
+                <span class="material-symbols-outlined text-[28px] text-primary dark:text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">eco</span>
+                WeCareBidar
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex gap-gutter items-center">
+                <a class="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary dark:border-primary-fixed-dim pb-1 hover:opacity-80 transition-all duration-300 cursor-pointer active:scale-95 transition-transform duration-200" href="feed.html">
+                    Impact
+                </a>
+                <a class="font-headline-md text-headline-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 hover:opacity-80 cursor-pointer" href="upload.html">
+                    Upload
+                </a>
+                <a class="font-headline-md text-headline-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 hover:opacity-80 cursor-pointer" href="leaderboard.html">
+                    The Collective
+                </a>
+                <a class="font-headline-md text-headline-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 hover:opacity-80 cursor-pointer" href="about.html">
+                    Manifesto
+                </a>
+                <a class="font-headline-md text-headline-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 hover:opacity-80 cursor-pointer" href="profile.html">
+                    Profile
+                </a>
+            </nav>
+            
+            <a id="desktopJoinBtn" href="auth.html" class="bg-primary text-on-primary px-6 py-3 rounded-full font-headline-md text-[16px] font-bold shadow-[0px_4px_14px_rgba(0,56,32,0.2)] hover:bg-primary-container transition-colors duration-300 hidden md:block text-center">
+                Join The Revolution
+            </a>
+            
+            <button class="md:hidden text-primary" id="mobileMenuBtn">
+                <span class="material-symbols-outlined text-[32px]">menu</span>
+            </button>
+        </div>
+
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobileMenu" class="hidden md:hidden border-t border-primary/10 bg-surface px-margin-mobile py-6 space-y-4 shadow-inner">
+            <div id="mobileUserHeader" class="hidden flex items-center gap-3 pb-4 border-b border-primary/5">
+                <img id="mobileUserAvatar" src="" class="w-10 h-10 rounded-full object-cover border border-primary/10" alt="Avatar">
+                <div>
+                    <div id="mobileUserFullName" class="font-headline-md text-sm font-bold text-on-surface">Loading...</div>
+                    <div id="mobileUserStatsCount" class="text-xs text-on-surface-variant">0 uploads verified</div>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2 pb-4 border-b border-primary/5">
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="feed.html">Impact</a>
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="upload.html">Upload</a>
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="leaderboard.html">The Collective</a>
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="about.html">Manifesto</a>
+                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="profile.html">Profile</a>
+            </div>
+            <div class="flex gap-2">
+                <a id="mobileJoinBtn" href="auth.html" class="flex-1 bg-primary text-on-primary py-3 rounded-lg text-center text-xs font-bold uppercase block">Join The Revolution</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full relative z-10">
+        <!-- Hero Section -->
+        <section class="relative pt-section-gap pb-24 px-margin-desktop px-margin-mobile md:px-margin-desktop w-full overflow-hidden flex flex-col items-center justify-center text-center">
+            <!-- Decorative background element simulating organic light -->
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary-fixed/20 rounded-full blur-[120px] -z-10"></div>
+            <div class="max-w-4xl mx-auto space-y-6 relative z-10">
+                <span class="inline-flex items-center gap-2 font-label-caps text-label-caps text-primary px-4 py-2 rounded-full border border-primary/20 bg-primary/5">
+                    <span class="material-symbols-outlined text-[16px]">public</span>
+                    Global Stewardship
+                </span>
+                <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-background">
+                    Environmental Change <br/>
+                    <span class="text-primary relative inline-block">In Action
+                        <svg class="absolute -bottom-2 left-0 w-full h-3 text-tertiary-fixed" fill="none" preserveAspectRatio="none" viewBox="0 0 100 10" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-linecap="round" stroke-width="4"></path>
+                        </svg>
+                    </span>
+                </h1>
+                <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
+                    Witness the real-time impact of our civic leaders and nature guardians. Every card represents a localized effort contributing to global sustainability.
+                </p>
+            </div>
+        </section>
+
+        <!-- Live Stats -->
+        <section class="max-w-container-max mx-auto px-margin-desktop px-margin-mobile md:px-margin-desktop mb-section-gap relative z-20 -mt-8">
+            <div class="flex flex-col md:flex-row gap-gutter justify-between bg-surface/90 backdrop-blur-xl border border-primary/10 rounded-xl p-8 shadow-[0px_20px_50px_rgba(0,0,0,0.04)]">
+                <div class="flex flex-col items-center md:items-start space-y-2 flex-1">
+                    <span class="font-label-caps text-label-caps text-secondary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim">verified</span>
+                        Actions Approved
+                    </span>
+                    <div id="counterActionsApproved" class="font-stat-display text-stat-display text-primary live-counter" data-target="0">0</div>
+                </div>
+                <div class="hidden md:block w-px bg-outline-variant/30 self-stretch"></div>
+                <div class="flex flex-col items-center md:items-start space-y-2 flex-1 md:pl-8">
+                    <span class="font-label-caps text-label-caps text-secondary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px] text-primary">recycling</span>
+                        Waste Removed (kg)
+                    </span>
+                    <div id="counterWasteRemoved" class="font-stat-display text-stat-display text-primary live-counter" data-target="0">0</div>
+                </div>
+                <div class="hidden md:block w-px bg-outline-variant/30 self-stretch"></div>
+                <div class="flex flex-col items-center md:items-start space-y-2 flex-1 md:pl-8">
+                    <span class="font-label-caps text-label-caps text-secondary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px] text-primary-container">park</span>
+                        Trees Planted
+                    </span>
+                    <div id="counterTreesPlanted" class="font-stat-display text-stat-display text-primary live-counter" data-target="0">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls (Filter Bar) -->
+        <section class="max-w-container-max mx-auto px-margin-desktop px-margin-mobile md:px-margin-desktop mb-12 sticky top-[80px] z-40 bg-background/95 backdrop-blur-md py-4 border-y border-primary/5">
+            <div class="flex items-center gap-4 overflow-x-auto no-scrollbar" id="filterBar">
+                <button data-category="all" class="filter-btn flex items-center gap-2 px-6 py-2 rounded-full bg-primary text-on-primary font-headline-md text-[14px] whitespace-nowrap transition-transform hover:scale-105">
+                    <span class="material-symbols-outlined text-[18px]">bolt</span>
+                    Latest Impact
+                </button>
+                <button data-category="Waste & Plastic Eradication" class="filter-btn flex items-center gap-2 px-6 py-2 rounded-full border border-primary/20 bg-surface hover:bg-surface-variant text-on-surface font-headline-md text-[14px] whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-[18px]">recycling</span>
+                    Waste &amp; Plastic Eradication
+                </button>
+                <button data-category="Afforestation / Tree Plantation" class="filter-btn flex items-center gap-2 px-6 py-2 rounded-full border border-primary/20 bg-surface hover:bg-surface-variant text-on-surface font-headline-md text-[14px] whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-[18px]">nature</span>
+                    Tree Plantation
+                </button>
+                <button data-category="Water Body Restoration" class="filter-btn flex items-center gap-2 px-6 py-2 rounded-full border border-primary/20 bg-surface hover:bg-surface-variant text-on-surface font-headline-md text-[14px] whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-[18px]">water_drop</span>
+                    Water Conservation
+                </button>
+                <button data-category="Civic Awareness Drive" class="filter-btn flex items-center gap-2 px-6 py-2 rounded-full border border-primary/20 bg-surface hover:bg-surface-variant text-on-surface font-headline-md text-[14px] whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-[18px]">campaign</span>
+                    Civic Awareness
+                </button>
+            </div>
+        </section>
+
+        <!-- Highlights / Main Feed -->
+        <section class="max-w-container-max mx-auto px-margin-desktop px-margin-mobile md:px-margin-desktop pb-section-gap">
+            <div id="feedGrid" class="columns-1 md:columns-2 lg:columns-3 gap-gutter space-y-gutter">
+                <!-- Dynamic cards are inserted here -->
+                <div class="glass-card p-12 text-center col-span-full rounded-2xl break-inside-avoid">
+                    <span class="material-symbols-outlined text-5xl text-primary/30 mb-4 animate-pulse">eco</span>
+                    <h4 class="font-headline-md text-headline-md text-primary">Hydrating the Green Grid</h4>
+                    <p class="text-on-surface-variant text-sm mt-2">Connecting to Supabase and loading approved campaigns...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-inverse-surface dark:bg-surface-container-lowest full-width border-t border-outline-variant/20 relative z-20">
+        <div class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop px-margin-mobile md:px-margin-desktop py-section-gap max-w-container-max mx-auto">
+            <div class="mb-8 md:mb-0 text-center md:text-left">
+                <a class="font-headline-md text-headline-md font-bold text-primary-fixed-dim dark:text-primary mb-2 block" href="index.html">
+                    WeCareBidar
+                </a>
+                <p class="font-body-md text-sm text-surface-variant/80 max-w-sm">
+                    © 2026 WeCareBidar. Empowering the next generation of environmental stewards. Zero-Residue footprint.
+                </p>
+            </div>
+            <nav class="flex flex-wrap justify-center md:justify-end gap-x-8 gap-y-4">
+                <a class="font-body-md text-body-md font-label-caps text-label-caps text-surface-variant/80 dark:text-on-surface-variant/80 hover:text-primary-fixed-dim hover:text-tertiary-fixed-dim transition-all duration-300" href="#">
+                    Sustainability Statement
+                </a>
+                <a class="font-body-md text-body-md font-label-caps text-label-caps text-surface-variant/80 dark:text-on-surface-variant/80 hover:text-primary-fixed-dim hover:text-tertiary-fixed-dim transition-all duration-300" href="#">
+                    Privacy Policy
+                </a>
+                <a class="font-body-md text-body-md font-label-caps text-label-caps text-surface-variant/80 dark:text-on-surface-variant/80 hover:text-primary-fixed-dim hover:text-tertiary-fixed-dim transition-all duration-300" href="#">
+                    Terms of Service
+                </a>
+                <a class="font-body-md text-body-md font-label-caps text-label-caps text-surface-variant/80 dark:text-on-surface-variant/80 hover:text-primary-fixed-dim hover:text-tertiary-fixed-dim transition-all duration-300" href="#">
+                    Civic Authority
+                </a>
+                <a class="font-body-md text-body-md font-label-caps text-label-caps text-surface-variant/80 dark:text-on-surface-variant/80 hover:text-primary-fixed-dim hover:text-tertiary-fixed-dim transition-all duration-300" href="contact.html">
+                    Contact Us
+                </a>
+            </nav>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Particle Generator for Environmental Vibe
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            const particleCount = 15;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 12 + 4; // 4px to 16px
+                const left = Math.random() * 98; // 0% to 98vw
+                const duration = Math.random() * 18 + 12; // 12s to 30s
+                const delay = Math.random() * 10; // 0s to 10s
+
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${left}vw`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `-${delay}s`;
+
+                container.appendChild(particle);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', createParticles);
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    </script>
+    <script src="feed.js"></script>
+</body>
+</html>
