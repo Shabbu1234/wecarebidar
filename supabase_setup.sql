@@ -133,8 +133,8 @@ VALUES (
     'temporary-videos', 
     'temporary-videos', 
     true, -- Public read for social API scrapers, restricted deletion/listing
-    41943040, -- 40MB limit (in bytes)
-    '{"video/mp4"}'
+    2147483648, -- 2GB limit (in bytes) - supports large environmental action videos
+    '{"video/mp4","video/quicktime","video/mov"}' -- MP4 + MOV supported
 )
 ON CONFLICT (id) DO UPDATE SET 
     file_size_limit = EXCLUDED.file_size_limit,
@@ -163,11 +163,11 @@ FOR SELECT
 TO public
 USING (bucket_id = 'temporary-videos');
 
--- Policy C: Allow deletions by admin actions
-CREATE POLICY "Allow admin deletions from temporary-videos" 
+-- Policy C: Allow deletions ONLY by service role (admin actions) - NOT anon!
+CREATE POLICY "Allow service role deletions from temporary-videos" 
 ON storage.objects 
 FOR DELETE 
-TO anon
+TO service_role
 USING (bucket_id = 'temporary-videos');
 
 
@@ -209,3 +209,33 @@ ON storage.objects
 FOR DELETE 
 TO authenticated
 USING (bucket_id = 'avatars');
+
+-- =============================================
+-- 8. Contact Inquiries Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS public.contact_inquiries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    full_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    message TEXT NOT NULL,
+    inquiry_type TEXT DEFAULT 'general', -- 'partnership', 'volunteer', 'general'
+    status TEXT DEFAULT 'new', -- 'new', 'read', 'replied'
+    submitted_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS
+ALTER TABLE public.contact_inquiries ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can submit a contact inquiry
+CREATE POLICY "Allow public insert on contact_inquiries"
+ON public.contact_inquiries
+FOR INSERT
+TO public
+WITH CHECK (true);
+
+-- Only admins (service role) can read contact submissions
+CREATE POLICY "Allow service role to read contact_inquiries"
+ON public.contact_inquiries
+FOR SELECT
+TO service_role
+USING (true);
