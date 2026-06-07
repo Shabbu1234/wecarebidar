@@ -2,19 +2,9 @@
 // WeCareBidar - COMMUNITY IMPACT FEED CONTROLLER
 // =======================================================
 
-// 1. Supabase Initialization Configuration
-const DEFAULT_SUPABASE_URL = "https://biykjcpjydcicwsgjgmi.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MjYxMTIsImV4cCI6MjA5NjMwMjExMn0.UlOP5KBZzCoEy4fUeytx7nEcz4Xv7F-rGhs5Mib6u9M";
-
-const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || DEFAULT_SUPABASE_URL;
-const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || DEFAULT_SUPABASE_ANON_KEY;
-
-let supabaseClient;
-
-try {
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch (e) {
-  console.error("Supabase Initialization Error:", e);
+// 1. Firebase Initialization Check
+if (typeof db === 'undefined' || typeof auth === 'undefined' || typeof storage === 'undefined') {
+  console.warn("⚠️ Firebase objects not found. Checking if loaded asynchronously...");
 }
 
 // 2. DOM Elements
@@ -37,16 +27,58 @@ const FALLBACK_IMAGES = [
 // 4. Data Hydration & Stats Calculations
 async function loadFeedData() {
   try {
-    // Retrieve approved submissions joined with profiles
-    const { data: submissions, error } = await supabaseClient
-      .from('submissions')
-      .select('*, profiles(id, full_name, avatar_url)')
-      .eq('status', 'approved')
-      .order('created_at', { ascending: false });
+    // Retrieve approved submissions from Firestore
+    const querySnapshot = await db.collection('submissions')
+      .where('status', '==', 'approved')
+      .get();
 
-    if (error) throw error;
+    const submissions = [];
+    const userIds = new Set();
 
-    allSubmissions = submissions || [];
+    querySnapshot.forEach(doc => {
+      const data = doc.data();
+      let created_at = data.created_at;
+      if (created_at && typeof created_at.toDate === 'function') {
+        created_at = created_at.toDate().toISOString();
+      }
+      submissions.push({
+        id: doc.id,
+        ...data,
+        created_at: created_at || new Date().toISOString()
+      });
+      if (data.user_id) {
+        userIds.add(data.user_id);
+      }
+    });
+
+    // In-memory sort by created_at desc (avoids Firestore index requirement)
+    submissions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // Fetch profiles for the userIds
+    const profiles = {};
+    if (userIds.size > 0) {
+      const chunks = Array.from(userIds);
+      const profilePromises = chunks.map(uid => db.collection('profiles').doc(uid).get());
+      const profileDocs = await Promise.all(profilePromises);
+      profileDocs.forEach(pDoc => {
+        if (pDoc.exists) {
+          profiles[pDoc.id] = pDoc.data();
+        }
+      });
+    }
+
+    // Attach profile info to each submission
+    submissions.forEach(sub => {
+      if (sub.user_id && profiles[sub.user_id]) {
+        sub.profiles = {
+          id: sub.user_id,
+          full_name: profiles[sub.user_id].full_name,
+          avatar_url: profiles[sub.user_id].avatar_url
+        };
+      }
+    });
+
+    allSubmissions = submissions;
 
     calculateMovementStats();
     renderFeedGrid("all");

@@ -3,20 +3,9 @@
 // analytics.js
 // =======================================================
 
-// ── 1. Supabase Initialisation ──────────────────────────
-const DEFAULT_SUPABASE_URL = "https://biykjcpjydcicwsgjgmi.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MjYxMTIsImV4cCI6MjA5NjMwMjExMn0.UlOP5KBZzCoEy4fUeytx7nEcz4Xv7F-rGhs5Mib6u9M";
-const SUPABASE_SERVICE_ROLE_KEY = localStorage.getItem('SUPABASE_KEY') || "";
-
-const SUPABASE_URL  = localStorage.getItem('SUPABASE_URL')      || DEFAULT_SUPABASE_URL;
-const SUPABASE_ANON = localStorage.getItem('SUPABASE_ANON_KEY') || DEFAULT_SUPABASE_ANON_KEY;
-
-let supabaseClient, supabaseAdmin;
-try {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    supabaseAdmin  = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-} catch (e) {
-    console.error("Supabase init error:", e);
+// 1. Firebase Initialization Check
+if (typeof db === 'undefined' || typeof auth === 'undefined' || typeof storage === 'undefined') {
+  console.warn("⚠️ Firebase objects not found. Checking if loaded asynchronously...");
 }
 
 // ── 2. DOM References ────────────────────────────────────
@@ -242,46 +231,29 @@ function renderRecentTable(rows) {
 
 async function fetchKPIs() {
     try {
-        // Total submissions
-        const { count: total } = await supabaseAdmin
-            .from('submissions')
-            .select('*', { count: 'exact', head: true });
+        const totalQuery = await db.collection('submissions').get();
+        const totalVal = totalQuery.size;
 
-        // Approved count
-        const { count: approved } = await supabaseAdmin
-            .from('submissions')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'approved');
+        const approvedQuery = await db.collection('submissions').where('status', '==', 'approved').get();
+        const approvedVal = approvedQuery.size;
 
-        // Pending count
-        const { count: pending } = await supabaseAdmin
-            .from('submissions')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'pending');
+        const pendingQuery = await db.collection('submissions').where('status', '==', 'pending').get();
+        const pendingVal = pendingQuery.size;
 
-        // Active users (distinct user_ids)
-        const { data: users } = await supabaseAdmin
-            .from('profiles')
-            .select('id', { count: 'exact', head: false });
-
-        const totalVal    = total    || 0;
-        const approvedVal = approved || 0;
-        const pendingVal  = pending  || 0;
-        const usersVal    = users?.length || 0;
+        const profilesQuery = await db.collection('profiles').get();
+        const usersVal = profilesQuery.size;
 
         animateCount(kpiTotalSubmissions, totalVal);
         animateCount(kpiApproved, approvedVal);
         animateCount(kpiPending, pendingVal);
         animateCount(kpiActiveUsers, usersVal);
 
-        // Estimated reach: approved × avg_impressions heuristic
         const estimatedReach = approvedVal * 480 + Math.floor(Math.random() * 5000);
         kpiReach.textContent = formatReach(estimatedReach);
         kpiReachChange.textContent = `±${(Math.random() * 4 + 1).toFixed(1)}%`;
 
     } catch (err) {
         console.error("KPI fetch error:", err);
-        // Fallback demo values
         animateCount(kpiTotalSubmissions, 247);
         animateCount(kpiApproved, 189);
         animateCount(kpiPending, 38);
@@ -293,26 +265,52 @@ async function fetchKPIs() {
 
 async function fetchRecentSubmissions() {
     try {
-        const { data, error } = await supabaseAdmin
-            .from('submissions')
-            .select(`
-                id,
-                title,
-                description,
-                category,
-                status,
-                user_id,
-                created_at,
-                profiles (full_name)
-            `)
-            .order('created_at', { ascending: false })
-            .limit(10);
+        const submissionsQuery = await db.collection('submissions').get();
+        const submissions = [];
+        const userIds = new Set();
 
-        if (error) throw error;
-        renderRecentTable(data || []);
+        submissionsQuery.forEach(doc => {
+            const data = doc.data();
+            let created_at = data.created_at;
+            if (created_at && typeof created_at.toDate === 'function') {
+                created_at = created_at.toDate().toISOString();
+            }
+            submissions.push({
+                id: doc.id,
+                ...data,
+                created_at: created_at || new Date().toISOString()
+            });
+            if (data.user_id) {
+                userIds.add(data.user_id);
+            }
+        });
+
+        submissions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const recentSubmissions = submissions.slice(0, 10);
+
+        const profiles = {};
+        if (userIds.size > 0) {
+            const chunks = Array.from(userIds);
+            const profilePromises = chunks.map(uid => db.collection('profiles').doc(uid).get());
+            const profileDocs = await Promise.all(profilePromises);
+            profileDocs.forEach(pDoc => {
+                if (pDoc.exists) {
+                    profiles[pDoc.id] = pDoc.data();
+                }
+            });
+        }
+
+        recentSubmissions.forEach(sub => {
+            if (sub.user_id && profiles[sub.user_id]) {
+                sub.profiles = {
+                    full_name: profiles[sub.user_id].full_name
+                };
+            }
+        });
+
+        renderRecentTable(recentSubmissions);
     } catch (err) {
         console.error("Recent submissions fetch error:", err);
-        // Demo fallback
         const demo = [
             { title: 'Tree Planting Drive — Udgir Road', category: 'Afforestation', status: 'approved', profiles: { full_name: 'Priya Reddy' },     created_at: new Date(Date.now() - 1800000).toISOString() },
             { title: 'Naubad Lake Cleanup Report',       category: 'Water Bodies',  status: 'pending',  profiles: { full_name: 'Mohammed Aslam' },   created_at: new Date(Date.now() - 7200000).toISOString() },
@@ -330,22 +328,27 @@ async function fetchHeatmapData() {
     startDate.setDate(today.getDate() - 69);
 
     try {
-        const { data, error } = await supabaseAdmin
-            .from('submissions')
-            .select('created_at')
-            .gte('created_at', startDate.toISOString())
-            .lte('created_at', today.toISOString());
+        const querySnapshot = await db.collection('submissions').get();
+        const data = [];
+        querySnapshot.forEach(doc => {
+            const row = doc.data();
+            let created_at = row.created_at;
+            if (created_at && typeof created_at.toDate === 'function') {
+                created_at = created_at.toDate().toISOString();
+            } else if (!created_at) {
+                created_at = new Date().toISOString();
+            }
+            if (created_at >= startDate.toISOString() && created_at <= today.toISOString()) {
+                data.push({ created_at });
+            }
+        });
 
-        if (error) throw error;
-
-        // Count per day
         const counts = {};
-        (data || []).forEach(row => {
+        data.forEach(row => {
             const day = row.created_at.slice(0, 10);
             counts[day] = (counts[day] || 0) + 1;
         });
 
-        // Build 70-day array
         const heatData = [];
         for (let i = 69; i >= 0; i--) {
             const d = new Date(today);
@@ -357,7 +360,6 @@ async function fetchHeatmapData() {
         renderHeatmap(heatmapGrid, heatData);
     } catch (err) {
         console.error("Heatmap fetch error:", err);
-        // Demo fallback: random data
         const heatData = [];
         for (let i = 69; i >= 0; i--) {
             const d = new Date(today);
@@ -373,21 +375,29 @@ async function fetchHeatmapData() {
 
 async function fetchGrowthData() {
     try {
-        // Fetch submissions in two 30-day windows
         const now   = new Date();
         const day30 = new Date(now); day30.setDate(now.getDate() - 30);
         const day60 = new Date(now); day60.setDate(now.getDate() - 60);
 
-        const { count: thisPeriod } = await supabaseAdmin
-            .from('submissions')
-            .select('*', { count: 'exact', head: true })
-            .gte('created_at', day30.toISOString());
+        const submissionsQuery = await db.collection('submissions').get();
+        let thisPeriod = 0;
+        let lastPeriod = 0;
 
-        const { count: lastPeriod } = await supabaseAdmin
-            .from('submissions')
-            .select('*', { count: 'exact', head: true })
-            .gte('created_at', day60.toISOString())
-            .lt('created_at', day30.toISOString());
+        submissionsQuery.forEach(doc => {
+            const data = doc.data();
+            let created_at = data.created_at;
+            if (created_at && typeof created_at.toDate === 'function') {
+                created_at = created_at.toDate().toISOString();
+            } else if (!created_at) {
+                created_at = new Date().toISOString();
+            }
+
+            if (created_at >= day30.toISOString()) {
+                thisPeriod++;
+            } else if (created_at >= day60.toISOString() && created_at < day30.toISOString()) {
+                lastPeriod++;
+            }
+        });
 
         const current  = thisPeriod || 1;
         const previous = lastPeriod || 1;
@@ -403,16 +413,14 @@ async function fetchGrowthData() {
             : `Slight dip detected: ${current} submissions this period vs ${previous} last period. Consider amplifying outreach in Bidar North sector.`;
         growthInsight.textContent = insightText;
 
-        // Mini monthly bar data (12 months simulated from real total)
         const monthlyBars = Array.from({ length: 12 }, (_, i) =>
             Math.max(1, Math.floor((current / 12) * (0.5 + Math.random())))
         );
-        monthlyBars[11] = current; // last bar = actual current
+        monthlyBars[11] = current;
         renderBarChart(growthBarChart, monthlyBars, 'bg-primary-container', 'bg-tertiary');
 
     } catch (err) {
         console.error("Growth data error:", err);
-        // Fallback
         kpiGrowthRate.textContent = '+18.4%';
         growthInsight.textContent = "Intelligence indicates a strong upward vector in youth demographic engagement, particularly correlating with recent 'Urban Oasis' deployments.";
         const fallbackBars = [4, 7, 5, 9, 8, 12, 11, 15, 14, 18, 16, 22];
@@ -457,27 +465,25 @@ function renderPlatformDistribution() {
 
 // ── 6. User Session ──────────────────────────────────────
 async function loadUserSession() {
+    if (typeof auth === 'undefined') return;
     try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session?.user) {
-            const { data: profile } = await supabaseClient
-                .from('profiles')
-                .select('full_name, avatar_url')
-                .eq('id', session.user.id)
-                .single();
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const profileDoc = await db.collection('profiles').doc(user.uid).get();
+                if (profileDoc.exists) {
+                    const profile = profileDoc.data();
+                    const name = profile.full_name || user.email?.split('@')[0] || 'Commander';
+                    const avatar = profile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
 
-            if (profile) {
-                const name = profile.full_name || session.user.email?.split('@')[0] || 'Commander';
-                const avatar = profile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
-
-                const el = document.getElementById('sidebarUserFullName');
-                if (el) el.textContent = name;
-                const mobileAvatar = document.getElementById('mobileUserAvatar');
-                if (mobileAvatar) mobileAvatar.src = avatar;
-                const sidebarAvatar = document.getElementById('sidebarUserAvatar');
-                if (sidebarAvatar) sidebarAvatar.src = avatar;
+                    const el = document.getElementById('sidebarUserFullName');
+                    if (el) el.textContent = name;
+                    const mobileAvatar = document.getElementById('mobileUserAvatar');
+                    if (mobileAvatar) mobileAvatar.src = avatar;
+                    const sidebarAvatar = document.getElementById('sidebarUserAvatar');
+                    if (sidebarAvatar) sidebarAvatar.src = avatar;
+                }
             }
-        }
+        });
     } catch (e) {
         console.warn("Session load error:", e);
     }
@@ -486,7 +492,13 @@ async function loadUserSession() {
 // ── 7. Logout ────────────────────────────────────────────
 if (btnLogout) {
     btnLogout.addEventListener('click', async () => {
-        await supabaseClient.auth.signOut();
+        if (auth) {
+            try {
+                await auth.signOut();
+            } catch (e) {
+                console.error("Sign out error:", e);
+            }
+        }
         showToast('Logged out successfully.', '👋');
         setTimeout(() => { window.location.href = 'auth.html'; }, 1000);
     });

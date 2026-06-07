@@ -2,19 +2,9 @@
 // WeCareBidar - CITIZEN LEADERBOARD CONTROLLER
 // =======================================================
 
-// 1. Supabase Initialization Configuration
-const DEFAULT_SUPABASE_URL = "https://biykjcpjydcicwsgjgmi.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MjYxMTIsImV4cCI6MjA5NjMwMjExMn0.UlOP5KBZzCoEy4fUeytx7nEcz4Xv7F-rGhs5Mib6u9M";
-
-const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || DEFAULT_SUPABASE_URL;
-const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || DEFAULT_SUPABASE_ANON_KEY;
-
-let supabaseClient;
-
-try {
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch (e) {
-  console.error("Supabase Initialization Error:", e);
+// 1. Firebase Initialization Check
+if (typeof db === 'undefined' || typeof auth === 'undefined' || typeof storage === 'undefined') {
+  console.warn("⚠️ Firebase objects not found. Checking if loaded asynchronously...");
 }
 
 // 2. DOM Elements
@@ -28,23 +18,36 @@ const leaderboardBody = document.getElementById('leaderboardBody');
 // 5. Load Rankings and Stats
 async function loadLeaderboardData() {
   try {
-    // 1. Fetch all profiles
-    const { data: profiles, error: pError } = await supabaseClient
-      .from('profiles')
-      .select('id, full_name, avatar_url, district, created_at')
-      .not('full_name', 'is', null);
+    // 1. Fetch all profiles from Firestore
+    const profilesSnapshot = await db.collection('profiles').get();
+    const profiles = [];
+    profilesSnapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.full_name) {
+        let created_at = data.created_at;
+        if (created_at && typeof created_at.toDate === 'function') {
+          created_at = created_at.toDate().toISOString();
+        }
+        profiles.push({
+          id: doc.id,
+          ...data,
+          created_at: created_at || new Date().toISOString()
+        });
+      }
+    });
 
-    if (pError) throw pError;
+    // 2. Fetch all approved submissions from Firestore
+    const submissionsSnapshot = await db.collection('submissions')
+      .where('status', '==', 'approved')
+      .get();
 
-    // 2. Fetch all approved submissions
-    const { data: submissions, error: sError } = await supabaseClient
-      .from('submissions')
-      .select('id, user_id, category')
-      .eq('status', 'approved');
-
-    if (sError) throw sError;
-
-    const approvedSubmissions = submissions || [];
+    const approvedSubmissions = [];
+    submissionsSnapshot.forEach(doc => {
+      approvedSubmissions.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
 
     // Calculate aggregated submission counts per user ID
     const submissionCounts = {};

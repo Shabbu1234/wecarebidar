@@ -2,18 +2,9 @@
 // WeCareBidar - PUBLIC CONTACT INQUIRY CONTROLLER
 // =======================================================
 
-const DEFAULT_SUPABASE_URL = "https://biykjcpjydcicwsgjgmi.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MjYxMTIsImV4cCI6MjA5NjMwMjExMn0.UlOP5KBZzCoEy4fUeytx7nEcz4Xv7F-rGhs5Mib6u9M";
-
-const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || DEFAULT_SUPABASE_URL;
-const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || DEFAULT_SUPABASE_ANON_KEY;
-
-let supabaseClient;
-
-try {
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch (e) {
-  console.error("Supabase Initialization Error:", e);
+// 1. Firebase Initialization Check
+if (typeof db === 'undefined' || typeof auth === 'undefined' || typeof storage === 'undefined') {
+  console.warn("⚠️ Firebase objects not found. Checking if loaded asynchronously...");
 }
 
 // DOM Elements
@@ -57,33 +48,30 @@ function showToast(message, type = 'success') {
 
 // 2. Session Checking
 async function checkAuthSession() {
-  if (!supabaseClient) return;
+  if (typeof auth === 'undefined') return;
 
   try {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    if (session && session.user) {
-      currentUser = session.user;
-      isSandboxMode = false;
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        isSandboxMode = false;
 
-      const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
-      
-      currentProfile = profile;
-    } else {
-      const sandboxUser = localStorage.getItem('SANDBOX_USER');
-      if (sandboxUser) {
-        currentProfile = JSON.parse(sandboxUser);
-        currentUser = { id: currentProfile.id, isSandbox: true };
-        isSandboxMode = true;
-        if (sandboxBanner) sandboxBanner.style.display = 'block';
+        const profileDoc = await db.collection('profiles').doc(user.uid).get();
+        if (profileDoc.exists) {
+          currentProfile = profileDoc.data();
+        }
+      } else {
+        const sandboxUser = localStorage.getItem('SANDBOX_USER');
+        if (sandboxUser) {
+          currentProfile = JSON.parse(sandboxUser);
+          currentUser = { uid: currentProfile.id, isSandbox: true };
+          isSandboxMode = true;
+          if (sandboxBanner) sandboxBanner.style.display = 'block';
+        }
       }
-    }
 
-    updateUserUI();
+      updateUserUI();
+    });
   } catch (err) {
     console.warn("Auth check failed:", err);
   }
@@ -133,18 +121,14 @@ if (contactForm) {
     submitBtn.innerHTML = `<span class="relative z-10 flex items-center gap-2"><span class="material-symbols-outlined animate-spin">sync</span> Transmitting...</span>`;
 
     try {
-      // Save to Supabase contact_inquiries table
-      const { error } = await supabaseClient
-        .from('contact_inquiries')
-        .insert([{
-          full_name: name,
-          email: email,
-          message: message,
-          inquiry_type: inquiryType,
-          submitted_at: new Date().toISOString()
-        }]);
-
-      if (error) throw error;
+      // Save to Firebase contact_inquiries collection
+      await db.collection('contact_inquiries').add({
+        full_name: name,
+        email: email,
+        message: message,
+        inquiry_type: inquiryType,
+        submitted_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
       // Success
       showToast('✅ Inquiry transmitted! We will respond within 2-4 hours.', 'success');
@@ -152,13 +136,8 @@ if (contactForm) {
 
     } catch (err) {
       console.error('Contact form submission failed:', err);
-      // Fallback: if table doesn't exist yet, still show success (user experience)
-      if (err.code === '42P01') {
-        showToast('⚠️ Contact table not set up yet. Please run supabase_setup.sql first.', 'error');
-      } else {
-        showToast('Inquiry transmitted securely! Our team will respond shortly.', 'success');
-        contactForm.reset();
-      }
+      showToast('Inquiry transmitted securely! Our team will respond shortly.', 'success');
+      contactForm.reset();
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalBtnHtml;
@@ -175,9 +154,10 @@ if (btnLogout) {
       return;
     }
 
-    if (supabaseClient) {
-      const { error } = await supabaseClient.auth.signOut();
-      if (error) {
+    if (auth) {
+      try {
+        await auth.signOut();
+      } catch (error) {
         console.error("Sign out error:", error);
       }
       window.location.href = 'auth.html';

@@ -2,11 +2,8 @@
 // WeCareBidar - ADMIN VERIFICATION WORKSPACE CONTROLLER
 // =======================================================
 
-let supabaseUrl = localStorage.getItem('SUPABASE_URL') || '';
-let supabaseKey = localStorage.getItem('SUPABASE_KEY') || '';
 let antgvityWebhookUrl = localStorage.getItem('ANTGVITY_WEBHOOK_URL') || 'https://cloud.activepieces.com/api/v1/webhooks/PR3T46AavqHabHXUymUjM';
 
-let supabaseClient = null;
 let pendingQueue = [];
 let currentItem = null;
 let isSandboxMode = false;
@@ -76,10 +73,12 @@ function showToast(message, type = 'success') {
 }
 
 // 2. Authentication Check
-function checkAuthentication() {
-  if (supabaseUrl && supabaseKey) {
-    try {
-      supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+async function checkAuthentication() {
+  const token = localStorage.getItem('ADMIN_TOKEN') || '';
+  if (token) {
+    const inputHash = await hashPassword(token + 'wcb_salt_2026');
+    const validHash = await hashPassword('WeCareEnvironment_5854' + 'wcb_salt_2026');
+    if (inputHash === validHash) {
       loginModal.classList.add('hidden');
       
       // Update admin avatar representation
@@ -94,14 +93,10 @@ function checkAuthentication() {
       }
       
       loadPendingSubmissions();
-    } catch (e) {
-      console.error(e);
-      showToast('Decryption failed. Re-enter service token.', 'error');
-      logout();
+      return;
     }
-  } else {
-    loginModal.classList.remove('hidden');
   }
+  loginModal.classList.remove('hidden');
 }
 
 loginForm.addEventListener('submit', async (e) => {
@@ -113,8 +108,7 @@ loginForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  // Secure password check - password is hashed, not stored in plaintext
-  // Hash of 'WeCareEnvironment_5854' = checked against stored hash
+  // Secure password check
   const ADMIN_PASS_HASH = '8e7d3f2a1b9c4e5f6d7a8b9c0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9';
   async function hashPassword(str) {
     const msgBuffer = new TextEncoder().encode(str);
@@ -127,30 +121,11 @@ loginForm.addEventListener('submit', async (e) => {
   const validHash = await hashPassword('WeCareEnvironment_5854' + 'wcb_salt_2026');
   
   if (inputHash === validHash) {
-    supabaseUrl = localStorage.getItem('SUPABASE_URL') || 'https://biykjcpjydcicwsgjgmi.supabase.co';
-    // Service role key must be set separately via admin settings - not hardcoded
-    supabaseKey = localStorage.getItem('SUPABASE_SERVICE_KEY') || '';
-    if (!supabaseKey) {
-      showToast('Admin key not configured. Please set it in browser localStorage: SUPABASE_SERVICE_KEY', 'error');
-      return;
-    }
-  } else if (token.startsWith('http')) {
-    const parts = token.split('|');
-    if (parts.length === 2) {
-      supabaseUrl = parts[0].trim();
-      supabaseKey = parts[1].trim();
-    } else {
-      showToast('Use format: URL|key', 'error');
-      return;
-    }
+    localStorage.setItem('ADMIN_TOKEN', token);
+    checkAuthentication();
   } else {
-    supabaseKey = token;
+    showToast('Invalid admin verification token.', 'error');
   }
-
-  localStorage.setItem('SUPABASE_URL', supabaseUrl);
-  localStorage.setItem('SUPABASE_KEY', supabaseKey);
-  
-  checkAuthentication();
 });
 
 // Password Toggle Visibility
@@ -165,9 +140,7 @@ if (togglePasswordBtn && adminTokenInput) {
 }
 
 function logout() {
-  localStorage.removeItem('SUPABASE_KEY');
-  supabaseKey = '';
-  supabaseClient = null;
+  localStorage.removeItem('ADMIN_TOKEN');
   loginModal.classList.remove('hidden');
   moderationWorkspace.style.display = 'none';
   emptyState.style.display = 'block';
@@ -208,18 +181,59 @@ if (btnSaveWebhook) {
 
 // 4. Data Loading and Display
 async function loadPendingSubmissions() {
-  if (!supabaseClient) return;
-
   try {
-    const { data, error } = await supabaseClient
-      .from('submissions')
-      .select('*, profiles(email, phone, full_name, avatar_url)')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: true });
+    const querySnapshot = await db.collection('submissions')
+      .where('status', '==', 'pending')
+      .get();
 
-    if (error) throw error;
+    const pending = [];
+    const userIds = new Set();
 
-    pendingQueue = data || [];
+    querySnapshot.forEach(doc => {
+      const data = doc.data();
+      let created_at = data.created_at;
+      if (created_at && typeof created_at.toDate === 'function') {
+        created_at = created_at.toDate().toISOString();
+      }
+      pending.push({
+        id: doc.id,
+        ...data,
+        created_at: created_at || new Date().toISOString()
+      });
+      if (data.user_id) {
+        userIds.add(data.user_id);
+      }
+    });
+
+    // Sort in memory by created_at ascending (FIFO queue)
+    pending.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+    // Fetch profiles for userIds
+    const profiles = {};
+    if (userIds.size > 0) {
+      const chunks = Array.from(userIds);
+      const profilePromises = chunks.map(uid => db.collection('profiles').doc(uid).get());
+      const profileDocs = await Promise.all(profilePromises);
+      profileDocs.forEach(pDoc => {
+        if (pDoc.exists) {
+          profiles[pDoc.id] = pDoc.data();
+        }
+      });
+    }
+
+    // Attach profile info
+    pending.forEach(sub => {
+      if (sub.user_id && profiles[sub.user_id]) {
+        sub.profiles = {
+          email: profiles[sub.user_id].email,
+          phone: profiles[sub.user_id].phone,
+          full_name: profiles[sub.user_id].full_name,
+          avatar_url: profiles[sub.user_id].avatar_url
+        };
+      }
+    });
+
+    pendingQueue = pending;
 
     if (pendingQueue.length > 0) {
       showSubmission(pendingQueue[0]);
@@ -298,34 +312,31 @@ guardrailChecks.forEach(checkbox => {
 // Helper: Extract filename from Supabase public URL
 function extractFilename(url) {
   if (!url) return null;
-  const parts = url.split('/temporary-videos/');
-  if (parts.length === 2) {
-    return parts[1];
+  try {
+    const decodedUrl = decodeURIComponent(url);
+    const parts = decodedUrl.split('/temporary-videos/');
+    if (parts.length === 2) {
+      return parts[1].split('?')[0];
+    }
+    return url.substring(url.lastIndexOf('/') + 1).split('?')[0];
+  } catch (e) {
+    console.error("Error decoding URL:", e);
+    return null;
   }
-  return url.substring(url.lastIndexOf('/') + 1);
 }
 
 // 6. Action Handlers: Done (Approve)
 btnApprove.addEventListener('click', async () => {
-  if (!currentItem || !supabaseClient) return;
+  if (!currentItem) return;
 
   const originalText = btnApprove.innerHTML;
   btnApprove.disabled = true;
   btnApprove.textContent = "Processing Approval...";
 
   try {
-    // 1. Update submissions table to mark as 'approved'
-    // We KEEP the video_url here so the GitHub Action cloud worker can pick it up for social media upload.
-    // The Python worker will handle purging the storage after a successful upload.
-    const { error: dbError } = await supabaseClient
-      .from('submissions')
-      .update({
-        status: 'approved'
-        // video_url is NOT cleared here anymore.
-      })
-      .eq('id', currentItem.id);
-
-    if (dbError) throw dbError;
+    await db.collection('submissions').doc(currentItem.id).update({
+      status: 'approved'
+    });
 
     showToast('Campaign Action Approved! Video queued for cloud social publishing.');
     loadPendingSubmissions();
@@ -341,26 +352,17 @@ btnApprove.addEventListener('click', async () => {
 
 // Reject submission
 btnReject.addEventListener('click', async () => {
-  if (!currentItem || !supabaseClient) return;
+  if (!currentItem) return;
   if (!confirm("Are you sure you want to permanently delete this submission?")) return;
 
   btnReject.disabled = true;
 
   try {
-    // 1. Delete from submissions table
-    const { error: dbError } = await supabaseClient
-      .from('submissions')
-      .delete()
-      .eq('id', currentItem.id);
+    await db.collection('submissions').doc(currentItem.id).delete();
 
-    if (dbError) throw dbError;
-
-    // 2. Delete the raw video file from Supabase storage
     const filename = extractFilename(currentItem.video_url);
     if (filename) {
-      await supabaseClient.storage
-        .from('temporary-videos')
-        .remove([filename]);
+      await storage.ref().child(`temporary-videos/${filename}`).delete();
     }
 
     showToast('Submission permanently rejected and purged.');
@@ -376,7 +378,7 @@ btnReject.addEventListener('click', async () => {
 
 // Request Revision
 btnRevision.addEventListener('click', async () => {
-  if (!currentItem || !supabaseClient) return;
+  if (!currentItem) return;
   
   const feedback = moderationFeedback.value.trim();
   if (!feedback) {
@@ -387,23 +389,14 @@ btnRevision.addEventListener('click', async () => {
   btnRevision.disabled = true;
 
   try {
-    // Log revision by updating notes/marking status as rejected to release client storage
-    const { error: dbError } = await supabaseClient
-      .from('submissions')
-      .update({
-        status: 'rejected', // Standard rejects to prevent infinite pending locks
-        user_description: `[REVISION REQUESTED: ${feedback}] ` + currentItem.user_description
-      })
-      .eq('id', currentItem.id);
+    await db.collection('submissions').doc(currentItem.id).update({
+      status: 'rejected',
+      user_description: `[REVISION REQUESTED: ${feedback}] ` + currentItem.user_description
+    });
 
-    if (dbError) throw dbError;
-
-    // Delete the file from storage
     const filename = extractFilename(currentItem.video_url);
     if (filename) {
-      await supabaseClient.storage
-        .from('temporary-videos')
-        .remove([filename]);
+      await storage.ref().child(`temporary-videos/${filename}`).delete();
     }
 
     showToast('Revision request logged. Video cleared.');

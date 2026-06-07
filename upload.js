@@ -2,22 +2,9 @@
 // WeCareBidar - UPLOAD CONTROLLER LOGIC
 // =======================================================
 
-// 1. Supabase Initialization Configuration
-const DEFAULT_SUPABASE_URL = "https://biykjcpjydcicwsgjgmi.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MjYxMTIsImV4cCI6MjA5NjMwMjExMn0.UlOP5KBZzCoEy4fUeytx7nEcz4Xv7F-rGhs5Mib6u9M";
-const SUPABASE_SERVICE_ROLE_KEY = localStorage.getItem('SUPABASE_KEY') || "";
-
-const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || DEFAULT_SUPABASE_URL;
-const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || DEFAULT_SUPABASE_ANON_KEY;
-
-let supabaseClient;
-let supabaseAdmin; // Used to bypass RLS in Sandbox Dev Mode
-
-try {
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-} catch (e) {
-  console.error("Supabase Initialization Error:", e);
+// 1. Firebase Initialization Check
+if (typeof db === 'undefined' || typeof auth === 'undefined' || typeof storage === 'undefined') {
+  console.warn("⚠️ Firebase objects not found. Checking if loaded asynchronously...");
 }
 
 // 2. DOM Elements
@@ -187,7 +174,18 @@ function resetFileSelection() {
   document.getElementById('drag-text-specs').classList.remove('hidden');
 }
 
-btnCancelUpload.addEventListener('click', resetFileSelection);
+btnCancelUpload.addEventListener('click', () => {
+  if (window.activeUploadTask) {
+    try {
+      window.activeUploadTask.cancel();
+      console.log("Upload task cancelled by user.");
+    } catch (e) {
+      console.error("Error cancelling upload:", e);
+    }
+    window.activeUploadTask = null;
+  }
+  resetFileSelection();
+});
 
 // 8. Video Upload & Submission Form Handler
 uploadForm.addEventListener('submit', async (e) => {
@@ -229,42 +227,42 @@ uploadForm.addEventListener('submit', async (e) => {
     const prefix = currentUser ? 'action' : 'anon';
     const cleanFileName = `${Date.now()}_${prefix}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
 
-    const client = isSandboxMode ? supabaseAdmin : supabaseClient;
+    // Upload to Firebase Storage
+    const publicVideoUrl = await new Promise((resolve, reject) => {
+      const storageRef = storage.ref().child(`temporary-videos/${cleanFileName}`);
+      const uploadTask = storageRef.put(selectedFile);
+      window.activeUploadTask = uploadTask;
 
-    // Perform file upload - Use resumable TUS upload for large files (>6MB)
-    const isLargeFile = selectedFile.size > CHUNK_SIZE;
-    
-    const uploadOptions = {
-      cacheControl: '3600',
-      upsert: false,
-      ...(isLargeFile && { duplex: 'half' }), // Required for chunked streaming
-      onUploadProgress: (progress) => {
-        const percent = Math.round((progress.loaded / progress.total) * 100);
-        const loadedMB = (progress.loaded / (1024 * 1024)).toFixed(1);
-        const totalMB = (progress.total / (1024 * 1024)).toFixed(1);
-        const totalDisplay = progress.total >= 1024 * 1024 * 1024
-          ? `${(progress.total / (1024 * 1024 * 1024)).toFixed(2)} GB`
-          : `${totalMB} MB`;
-        const loadedDisplay = progress.loaded >= 1024 * 1024 * 1024
-          ? `${(progress.loaded / (1024 * 1024 * 1024)).toFixed(2)} GB`
-          : `${loadedMB} MB`;
-        updateProgress(percent, `${loadedDisplay} / ${totalDisplay} uploaded...`);
-        submitBtnTextSpan.textContent = `Uploading Video (${percent}%)`;
-      }
-    };
-
-    const { data: uploadData, error: uploadError } = await client.storage
-      .from('temporary-videos')
-      .upload(cleanFileName, selectedFile, uploadOptions);
-
-    if (uploadError) throw uploadError;
-
-    // Get public URL
-    const { data: publicUrlData } = client.storage
-      .from('temporary-videos')
-      .getPublicUrl(cleanFileName);
-
-    const publicVideoUrl = publicUrlData.publicUrl;
+      uploadTask.on('state_changed', 
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          const percent = Math.round(progress);
+          const loadedMB = (snapshot.bytesTransferred / (1024 * 1024)).toFixed(1);
+          const totalMB = (snapshot.totalBytes / (1024 * 1024)).toFixed(1);
+          const totalDisplay = snapshot.totalBytes >= 1024 * 1024 * 1024
+            ? `${(snapshot.totalBytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
+            : `${totalMB} MB`;
+          const loadedDisplay = snapshot.bytesTransferred >= 1024 * 1024 * 1024
+            ? `${(snapshot.bytesTransferred / (1024 * 1024 * 1024)).toFixed(2)} GB`
+            : `${loadedMB} MB`;
+          updateProgress(percent, `${loadedDisplay} / ${totalDisplay} uploaded...`);
+          submitBtnTextSpan.textContent = `Uploading Video (${percent}%)`;
+        }, 
+        (error) => {
+          window.activeUploadTask = null;
+          reject(error);
+        }, 
+        async () => {
+          window.activeUploadTask = null;
+          try {
+            const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+            resolve(downloadURL);
+          } catch (err) {
+            reject(err);
+          }
+        }
+      );
+    });
 
     updateProgress(100, 'Registering environmental action record...');
     submitBtnTextSpan.textContent = 'Saving details...';
@@ -272,24 +270,25 @@ uploadForm.addEventListener('submit', async (e) => {
     // Format user description to display beautifully in admin and automation
     const unifiedDescription = `Campaign: ${title}\nZone: ${location}\nCategory: ${category}\nNotes: ${notes}`;
 
-    // Write to submissions table
-    const { error: dbError } = await client
-      .from('submissions')
-      .insert([
-        {
-          user_id: currentUser ? currentUser.id : null, // Set to null for anonymous uploads
-          user_description: unifiedDescription,
-          video_url: publicVideoUrl,
-          title: title,
-          location: location,
-          category: category,
-          status: 'pending'
-        }
-      ]);
-
-    if (dbError) {
+    // Write to submissions collection in Firestore
+    try {
+      await db.collection('submissions').add({
+        user_id: currentUser ? currentUser.uid : null,
+        user_description: unifiedDescription,
+        video_url: publicVideoUrl,
+        title: title,
+        location: location,
+        category: category,
+        status: 'pending',
+        created_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (dbError) {
       // Rollback video upload if DB record fails
-      await client.storage.from('temporary-videos').remove([cleanFileName]);
+      try {
+        await storage.ref().child(`temporary-videos/${cleanFileName}`).delete();
+      } catch (delError) {
+        console.error("Cleanup upload rollback failed:", delError);
+      }
       throw dbError;
     }
 

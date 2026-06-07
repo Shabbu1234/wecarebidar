@@ -2,11 +2,8 @@
 // WeCareBidar - ADMIN COMMAND CENTER CONTROLLER
 // =======================================================
 
-let supabaseUrl = localStorage.getItem('SUPABASE_URL') || '';
-let supabaseKey = localStorage.getItem('SUPABASE_KEY') || '';
 let antgvityWebhookUrl = localStorage.getItem('ANTGVITY_WEBHOOK_URL') || 'https://cloud.activepieces.com/api/v1/webhooks/PR3T46AavqHabHXUymUjM';
 
-let supabaseClient = null;
 let isSandboxMode = false;
 
 // DOM Elements
@@ -63,10 +60,12 @@ function showToast(message, type = 'success') {
 }
 
 // 2. Authentication Check
-function checkAuthentication() {
-  if (supabaseUrl && supabaseKey) {
-    try {
-      supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+async function checkAuthentication() {
+  const token = localStorage.getItem('ADMIN_TOKEN') || '';
+  if (token) {
+    const inputHash = await hashPassword(token + 'wcb_salt_2026');
+    const validHash = await hashPassword('WeCareEnvironment_5854' + 'wcb_salt_2026');
+    if (inputHash === validHash) {
       loginModal.classList.add('hidden');
       
       // Update admin avatar representation
@@ -97,17 +96,20 @@ function checkAuthentication() {
       }
       
       loadDashboardData();
-    } catch (e) {
-      console.error(e);
-      showToast('Decryption failed. Re-enter service token.', 'error');
-      logout();
+      return;
     }
-  } else {
-    loginModal.classList.remove('hidden');
   }
+  loginModal.classList.remove('hidden');
 }
 
-loginForm.addEventListener('submit', (e) => {
+async function hashPassword(str) {
+  const msgBuffer = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const token = adminTokenInput.value.trim();
   
@@ -116,27 +118,15 @@ loginForm.addEventListener('submit', (e) => {
     return;
   }
 
-  // Custom Static Password Check
-  if (token === 'WeCareEnvironment_5854') {
-    supabaseUrl = 'https://biykjcpjydcicwsgjgmi.supabase.co';
-    supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDcyNjExMiwiZXhwIjoyMDk2MzAyMTEyfQ.i8lAIPqGlCR1FQBqCHNpBbX5MnZJ73nD1DIkbNQtJMU';
-  } else if (token.startsWith('http')) {
-    const parts = token.split('|');
-    if (parts.length === 2) {
-      supabaseUrl = parts[0].trim();
-      supabaseKey = parts[1].trim();
-    } else {
-      showToast('Use format: URL|key', 'error');
-      return;
-    }
-  } else {
-    supabaseKey = token;
-  }
-
-  localStorage.setItem('SUPABASE_URL', supabaseUrl);
-  localStorage.setItem('SUPABASE_KEY', supabaseKey);
+  const inputHash = await hashPassword(token + 'wcb_salt_2026');
+  const validHash = await hashPassword('WeCareEnvironment_5854' + 'wcb_salt_2026');
   
-  checkAuthentication();
+  if (inputHash === validHash) {
+    localStorage.setItem('ADMIN_TOKEN', token);
+    checkAuthentication();
+  } else {
+    showToast('Invalid admin verification token.', 'error');
+  }
 });
 
 // Password Toggle Visibility
@@ -151,9 +141,7 @@ if (togglePasswordBtn && adminTokenInput) {
 }
 
 function logout() {
-  localStorage.removeItem('SUPABASE_KEY');
-  supabaseKey = '';
-  supabaseClient = null;
+  localStorage.removeItem('ADMIN_TOKEN');
   loginModal.classList.remove('hidden');
   
   // Clear counts/feed to hide admin data
@@ -194,36 +182,101 @@ if (btnSaveWebhook) {
 
 // 4. Load statistics and recent actions
 async function loadDashboardData() {
-  if (!supabaseClient) return;
-
   try {
     // 1. Fetch pending submissions count
-    const { count: pendingCount, error: pErr } = await supabaseClient
-      .from('submissions')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending');
-    
-    if (pErr) throw pErr;
-    animateCounter(statReviewQueue, pendingCount || 0);
+    const pendingQuery = await db.collection('submissions')
+      .where('status', '==', 'pending')
+      .get();
+    const pendingCount = pendingQuery.size;
+    animateCounter(statReviewQueue, pendingCount);
 
     // 2. Fetch profiles count as Active Rebels
-    const { count: rebelsCount, error: rErr } = await supabaseClient
-      .from('profiles')
-      .select('*', { count: 'exact', head: true });
-    
-    if (rErr) throw rErr;
-    animateCounter(statActiveMods, rebelsCount || 0);
+    const profilesQuery = await db.collection('profiles').get();
+    const rebelsCount = profilesQuery.size;
+    animateCounter(statActiveMods, rebelsCount);
 
     // 3. Fetch approved submissions to count impact and show logs
-    const { data: approvedSubmissions, error: aErr } = await supabaseClient
-      .from('submissions')
-      .select('id, category, user_id, location, title, created_at, profiles(full_name)')
-      .eq('status', 'approved')
-      .order('created_at', { ascending: false });
-    
-    if (aErr) throw aErr;
+    const approvedQuery = await db.collection('submissions')
+      .where('status', '==', 'approved')
+      .get();
 
-    const approvedList = approvedSubmissions || [];
+    const approvedList = [];
+    const userIds = new Set();
+    approvedQuery.forEach(doc => {
+      const data = doc.data();
+      let created_at = data.created_at;
+      if (created_at && typeof created_at.toDate === 'function') {
+        created_at = created_at.toDate().toISOString();
+      }
+      approvedList.push({
+        id: doc.id,
+        ...data,
+        created_at: created_at || new Date().toISOString()
+      });
+      if (data.user_id) {
+        userIds.add(data.user_id);
+      }
+    });
+
+    // In-memory sort by created_at desc
+    approvedList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // Fetch profiles for the userIds
+    const profiles = {};
+    if (userIds.size > 0) {
+      const chunks = Array.from(userIds);
+      const profilePromises = chunks.map(uid => db.collection('profiles').doc(uid).get());
+      const profileDocs = await Promise.all(profilePromises);
+      profileDocs.forEach(pDoc => {
+        if (pDoc.exists) {
+          profiles[pDoc.id] = pDoc.data();
+        }
+      });
+    }
+
+    // Attach profile info to each submission
+    approvedList.forEach(sub => {
+      if (sub.user_id && profiles[sub.user_id]) {
+        sub.profiles = {
+          full_name: profiles[sub.user_id].full_name
+        };
+      }
+    });
+
+    // Calculate dynamic tree and waste count
+    const treeCount = approvedList.filter(s => s.category === "Afforestation / Tree Plantation").length;
+    const wasteCount = approvedList.filter(s => s.category === "Waste & Plastic Eradication").length;
+
+    const totalTrees = treeCount * 50;
+    const totalWasteKg = wasteCount * 150;
+
+    // Update Text and Progress bar width style
+    if (statTreesText) statTreesText.textContent = totalTrees.toLocaleString();
+    if (statTreesBar) {
+      const treeProgress = Math.min((totalTrees / 1000) * 100, 100);
+      statTreesBar.style.width = `${treeProgress}%`;
+    }
+
+    if (statWasteText) statWasteText.textContent = `${totalWasteKg.toLocaleString()} kg`;
+    if (statWasteBar) {
+      const wasteProgress = Math.min((totalWasteKg / 5000) * 100, 100);
+      statWasteBar.style.width = `${wasteProgress}%`;
+    }
+
+    // Populate Activity Center logs
+    renderEventFeed(approvedList);
+
+  } catch (err) {
+    console.error("Dashboard statistics loading failed:", err);
+    if (activityFeedContainer) {
+      activityFeedContainer.innerHTML = `
+        <div class="py-12 text-center text-error font-semibold">
+          Error loading command logs: ${err.message || 'Database error.'}
+        </div>
+      `;
+    }
+  }
+}
 
     // Calculate dynamic tree and waste count
     const treeCount = approvedList.filter(s => s.category === "Afforestation / Tree Plantation").length;
