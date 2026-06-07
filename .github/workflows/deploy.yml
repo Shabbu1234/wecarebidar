@@ -1,18 +1,19 @@
-name: Deploy static frontend to GitHub Pages
+name: 🌐 Deploy WeCareBidar to GitHub Pages
 
 on:
   push:
     branches:
       - main
       - master
+  workflow_dispatch: # Manual trigger bhi allowed hai
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# GitHub Pages ke liye permissions
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment
+# Ek waqt mein sirf ek deployment
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -23,31 +24,44 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Pages
+      - name: ⚙️ Setup Pages
         uses: actions/configure-pages@v4
 
-      # We can upload the current workspace directory directly as it contains index.html, admin.html, styles.css, app.js, admin.js
-      # Exclude non-production configurations like SQL setups and workflows from public site hosting
-      - name: Package Assets
+      - name: 📦 Package Frontend Assets
         run: |
-          mkdir dist
-          cp index.html dist/
-          cp admin.html dist/
-          cp auth.html dist/
-          cp styles.css dist/
-          cp app.js dist/
-          cp admin.js dist/
-          cp auth.js dist/
+          mkdir -p dist
+          
+          # HTML files copy karo
+          cp *.html dist/ 2>/dev/null || true
+          
+          # JavaScript files copy karo
+          cp *.js dist/ 2>/dev/null || true
+          
+          # CSS files copy karo
+          cp *.css dist/ 2>/dev/null || true
+          
+          # JSON config files copy karo (env nahi)
+          cp package.json dist/ 2>/dev/null || true
+          cp antgvity_workflow.json dist/ 2>/dev/null || true
+          
+          echo "✅ Files packaged successfully:"
+          ls -la dist/
 
-      - name: Upload Artifact
+      - name: 🚀 Upload Artifact to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
-      - name: Deploy to GitHub Pages
+      - name: 🌐 Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: 📣 Deployment Complete
+        run: |
+          echo "✅ WeCareBidar deployed successfully!"
+          echo "🌐 Live URL: ${{ steps.deployment.outputs.page_url }}"

@@ -4,31 +4,20 @@
 
 // 1. Supabase Initialization Configuration
 const DEFAULT_SUPABASE_URL = "https://biykjcpjydcicwsgjgmi.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_VLxlLLq7KawoBaLxq7IoXQ_NK2yPSce";
-const SUPABASE_SERVICE_ROLE_KEY = localStorage.getItem('SUPABASE_KEY') || "";
+const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MjYxMTIsImV4cCI6MjA5NjMwMjExMn0.UlOP5KBZzCoEy4fUeytx7nEcz4Xv7F-rGhs5Mib6u9M";
 
 const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || DEFAULT_SUPABASE_URL;
 const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || DEFAULT_SUPABASE_ANON_KEY;
 
 let supabaseClient;
-let supabaseAdmin; // Sandbox Mode bypass
 
 try {
   supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 } catch (e) {
   console.error("Supabase Initialization Error:", e);
 }
 
 // 2. DOM Elements
-const sandboxBanner = document.getElementById('sandboxBanner');
-const desktopJoinBtn = document.getElementById('desktopJoinBtn');
-const mobileJoinBtn = document.getElementById('mobileJoinBtn');
-const mobileUserHeader = document.getElementById('mobileUserHeader');
-const mobileUserAvatar = document.getElementById('mobileUserAvatar');
-const mobileUserFullName = document.getElementById('mobileUserFullName');
-const mobileUserStatsCount = document.getElementById('mobileUserStatsCount');
-
 const statTreesSupported = document.getElementById('statTreesSupported');
 const statWasteRemoved = document.getElementById('statWasteRemoved');
 const statActiveCitizens = document.getElementById('statActiveCitizens');
@@ -36,82 +25,11 @@ const statActiveCitizens = document.getElementById('statActiveCitizens');
 const podiumContainer = document.getElementById('podiumContainer');
 const leaderboardBody = document.getElementById('leaderboardBody');
 
-// 3. State Management
-let currentUser = null;
-let currentProfile = null;
-let isSandboxMode = false;
-
-// 4. Session Validation
-async function checkAuthSession() {
-  if (!supabaseClient) return;
-
-  try {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    if (session && session.user) {
-      currentUser = session.user;
-      isSandboxMode = false;
-
-      const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
-      
-      currentProfile = profile;
-    } else {
-      const sandboxUser = localStorage.getItem('SANDBOX_USER');
-      if (sandboxUser) {
-        currentProfile = JSON.parse(sandboxUser);
-        currentUser = { id: currentProfile.id, isSandbox: true };
-        isSandboxMode = true;
-        sandboxBanner.style.display = 'block';
-      }
-    }
-
-    updateNavbarUI();
-  } catch (err) {
-    console.warn("Auth check failed:", err);
-  }
-}
-
-async function updateNavbarUI() {
-  if (currentUser && currentProfile) {
-    desktopJoinBtn.textContent = "Dashboard";
-    desktopJoinBtn.href = "index.html";
-    mobileJoinBtn.textContent = "Dashboard";
-    mobileJoinBtn.href = "index.html";
-
-    // Fetch user approved submissions for mobile info panel
-    const client = isSandboxMode ? supabaseAdmin : supabaseClient;
-    const { count } = await client
-      .from('submissions')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', currentUser.id)
-      .eq('status', 'approved');
-
-    const uploadsCount = count || 0;
-    const avatarUrl = currentProfile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentProfile.full_name)}`;
-    mobileUserAvatar.src = avatarUrl;
-    mobileUserFullName.textContent = currentProfile.full_name || "Citizen Rebel";
-    mobileUserStatsCount.textContent = `${uploadsCount} upload${uploadsCount === 1 ? '' : 's'} verified`;
-    mobileUserHeader.classList.remove('hidden');
-  } else {
-    desktopJoinBtn.textContent = "Join The Revolution";
-    desktopJoinBtn.href = "auth.html";
-    mobileJoinBtn.textContent = "Join The Revolution";
-    mobileJoinBtn.href = "auth.html";
-    mobileUserHeader.classList.add('hidden');
-  }
-}
-
 // 5. Load Rankings and Stats
 async function loadLeaderboardData() {
   try {
-    const client = isSandboxMode ? supabaseAdmin : supabaseClient;
-
     // 1. Fetch all profiles
-    const { data: profiles, error: pError } = await client
+    const { data: profiles, error: pError } = await supabaseClient
       .from('profiles')
       .select('id, full_name, avatar_url, district, created_at')
       .not('full_name', 'is', null);
@@ -119,7 +37,7 @@ async function loadLeaderboardData() {
     if (pError) throw pError;
 
     // 2. Fetch all approved submissions
-    const { data: submissions, error: sError } = await client
+    const { data: submissions, error: sError } = await supabaseClient
       .from('submissions')
       .select('id, user_id, category')
       .eq('status', 'approved');
@@ -412,10 +330,7 @@ function animateCounterText(element, finalString, numericEnd) {
 
 // Initialization Sequence
 async function initLeaderboard() {
-  await checkAuthSession();
   await loadLeaderboardData();
 }
 
 initLeaderboard();
-
-

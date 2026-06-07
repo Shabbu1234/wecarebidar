@@ -1,0 +1,45 @@
+name: 🤖 Auto Publish & Zero-Residue Cleanup
+
+on:
+  schedule:
+    # Har 30 minute mein check karta hai naye approved videos ke liye
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # GitHub UI se manually bhi trigger kar sakte hain
+
+jobs:
+  publish-and-cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 📦 Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install supabase requests
+          pip install langchain-openai
+          pip install browser-use
+          playwright install --with-deps chromium
+
+      - name: 🚀 Run Auto Publisher (Social Upload & Cleanup)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" python auto_publisher.py
+
+      - name: ✅ Done - Report Status
+        if: always()
+        run: |
+          echo "Auto-publisher run completed at $(date -u)"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run ID: ${{ github.run_id }}"

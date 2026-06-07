@@ -155,13 +155,18 @@
             <form id="loginForm" class="space-y-4">
                 <div class="flex flex-col gap-2">
                     <label class="font-label-caps text-[10px] text-on-surface-variant font-bold uppercase tracking-wider" for="adminToken">Decryption Key / Token</label>
-                    <input 
-                        type="password" 
-                        id="adminToken" 
-                        class="w-full bg-white/80 border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none" 
-                        placeholder="Enter token string" 
-                        required
-                    >
+                    <div class="relative w-full">
+                        <input 
+                            type="password" 
+                            id="adminToken" 
+                            class="w-full bg-white/80 border border-outline-variant/50 text-on-surface font-body-md text-body-md rounded-xl p-4 pr-12 focus:border-primary-fixed-dim focus:ring-4 focus:ring-primary-fixed-dim/20 transition-all outline-none" 
+                            placeholder="Enter token string" 
+                            required
+                        >
+                        <button type="button" id="togglePassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined select-none" id="eyeIcon">visibility</span>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="w-full py-4 bg-primary text-on-primary font-headline-md text-sm font-bold rounded-lg shadow-lg hover:bg-primary-container transition-all">
                     Authenticate Credentials
@@ -249,7 +254,7 @@
                 <span class="material-symbols-outlined" data-icon="person">person</span>
                 <span>Profile</span>
             </a>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-variant hover:bg-surface-variant/10 text-body-md font-body-md hover:bg-primary-fixed-dim/20 transition-all duration-300" href="admin.html">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-variant hover:bg-surface-variant/10 text-body-md font-body-md hover:bg-primary-fixed-dim/20 transition-all duration-300" href="admin_gateway.html">
                 <span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
                 <span>Admin Dashboard</span>
             </a>

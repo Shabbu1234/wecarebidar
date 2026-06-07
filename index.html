@@ -199,9 +199,29 @@
         <div class="flex justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-4">
 
             <!-- Logo -->
-            <a href="index.html" class="font-headline-lg text-headline-lg font-extrabold text-primary tracking-tight hover:opacity-80 transition-opacity">
-                🌿 WeCareBidar
-            </a>
+            <div class="flex items-center gap-2">
+                <span id="admin-trigger" class="cursor-pointer hover:opacity-80 transition-opacity text-headline-lg">🌿</span>
+                <a href="index.html" class="font-headline-lg text-headline-lg font-extrabold text-primary tracking-tight hover:opacity-80 transition-opacity">
+                    WeCareBidar
+                </a>
+            </div>
+
+            <script>
+                // Secret Admin Access Logic (Icon Only)
+                let logoClicks = 0;
+                let clickTimer;
+                document.getElementById('admin-trigger').addEventListener('click', function() {
+                    logoClicks++;
+                    clearTimeout(clickTimer);
+                    if (logoClicks === 5) {
+                        window.location.href = 'admin_gateway.html';
+                    } else {
+                        clickTimer = setTimeout(() => {
+                            logoClicks = 0;
+                        }, 2000);
+                    }
+                });
+            </script>
 
             <!-- Desktop Nav Links -->
             <div class="hidden md:flex gap-8 items-center">
@@ -215,12 +235,7 @@
 
             <!-- Desktop CTA -->
             <div class="hidden md:flex items-center gap-3">
-                <a href="auth.html" class="text-primary font-semibold font-body-md hover:text-primary-container transition-colors px-4 py-2">
-                    Sign In
-                </a>
-                <a href="auth.html" id="navJoinBtn" class="cta-glow bg-primary text-on-primary px-6 py-3 rounded-full font-body-md font-bold hover:bg-primary-container transition-all">
-                    Join The Revolution
-                </a>
+                <!-- No Login Required -->
             </div>
 
             <!-- Mobile Menu Button -->
@@ -238,9 +253,6 @@
                 <a href="feed.html"   class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">Community</a>
                 <a href="about.html"  class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">About</a>
                 <a href="leaderboard.html" class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">Leaders</a>
-                <a href="auth.html"   class="w-full bg-primary text-on-primary text-center px-6 py-3 rounded-full font-body-md font-bold mt-2">
-                    Join The Revolution
-                </a>
             </div>
         </div>
     </nav>
@@ -285,10 +297,10 @@
 
             <!-- CTA Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center fade-up" style="transition-delay: 240ms;">
-                <a href="auth.html" class="cta-glow bg-primary text-on-primary px-8 py-4 rounded-full font-body-md font-bold hover:bg-primary-container transition-all relative overflow-hidden group text-center">
+                <a href="upload.html" class="cta-glow bg-primary text-on-primary px-8 py-4 rounded-full font-body-md font-bold hover:bg-primary-container transition-all relative overflow-hidden group text-center">
                     <span class="relative z-10 flex items-center justify-center gap-2">
                         <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1;">eco</span>
-                        Join The Revolution
+                        Start A Mission
                     </span>
                     <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out rounded-full"></div>
                 </a>
@@ -409,21 +421,12 @@
                 <h2 class="font-headline-lg text-headline-lg text-primary">How It Works</h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter relative">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter relative">
                 <!-- Connecting line (desktop only) -->
-                <div class="hidden md:block absolute top-10 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-primary/20 via-tertiary/40 to-primary/20 z-0"></div>
+                <div class="hidden md:block absolute top-10 left-[16.5%] right-[16.5%] h-0.5 bg-gradient-to-r from-primary/20 via-tertiary/40 to-primary/20 z-0"></div>
 
                 <!-- Step 1 -->
                 <div class="fade-up text-center relative z-10">
-                    <div class="w-20 h-20 rounded-full bg-primary text-on-primary flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
-                        <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">person_add</span>
-                    </div>
-                    <h3 class="font-headline-md text-headline-md text-primary mb-3">Sign Up</h3>
-                    <p class="font-body-md text-body-md text-on-surface-variant">Create your free account and join thousands of Bidar citizens already making a difference.</p>
-                </div>
-
-                <!-- Step 2 -->
-                <div class="fade-up text-center relative z-10" style="transition-delay:100ms;">
                     <div class="w-20 h-20 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center mx-auto mb-6 shadow-lg shadow-tertiary/20">
                         <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">photo_camera</span>
                     </div>
@@ -431,8 +434,8 @@
                     <p class="font-body-md text-body-md text-on-surface-variant">Do something great for Bidar — clean a park, plant a tree, reduce waste — and capture it.</p>
                 </div>
 
-                <!-- Step 3 -->
-                <div class="fade-up text-center relative z-10" style="transition-delay:200ms;">
+                <!-- Step 2 -->
+                <div class="fade-up text-center relative z-10" style="transition-delay:100ms;">
                     <div class="w-20 h-20 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary-container/30">
                         <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">upload</span>
                     </div>
@@ -440,8 +443,8 @@
                     <p class="font-body-md text-body-md text-on-surface-variant">Submit your photo/video. Our moderation team reviews and publishes it to the community feed.</p>
                 </div>
 
-                <!-- Step 4 -->
-                <div class="fade-up text-center relative z-10" style="transition-delay:300ms;">
+                <!-- Step 3 -->
+                <div class="fade-up text-center relative z-10" style="transition-delay:200ms;">
                     <div class="w-20 h-20 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center mx-auto mb-6 shadow-lg shadow-tertiary/20">
                         <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">military_tech</span>
                     </div>
@@ -458,9 +461,9 @@
                     <h2 class="font-headline-lg text-headline-lg text-primary mb-4">Ready to Make Bidar Greener?</h2>
                     <p class="font-body-lg text-body-lg text-on-surface-variant mb-8 max-w-xl mx-auto">Join thousands of citizens who are already transforming Bidar one action at a time.</p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="auth.html" class="cta-glow bg-primary text-on-primary px-10 py-4 rounded-full font-body-md font-bold hover:bg-primary-container transition-all inline-flex items-center gap-2 justify-center">
+                        <a href="upload.html" class="cta-glow bg-primary text-on-primary px-10 py-4 rounded-full font-body-md font-bold hover:bg-primary-container transition-all inline-flex items-center gap-2 justify-center">
                             <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">eco</span>
-                            Get Started Free
+                            Upload Your Mission
                         </a>
                         <a href="about.html" class="border-2 border-primary text-primary px-10 py-4 rounded-full font-body-md font-bold hover:bg-primary hover:text-on-primary transition-all inline-flex items-center gap-2 justify-center">
                             <span class="material-symbols-outlined">info</span>
@@ -494,11 +497,9 @@
                 <div>
                     <h4 class="font-label-caps text-label-caps text-primary-fixed-dim uppercase tracking-widest mb-4">Platform</h4>
                     <ul class="space-y-3">
-                        <li><a href="dashboard.html"  class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Dashboard</a></li>
                         <li><a href="feed.html"       class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Community Feed</a></li>
                         <li><a href="upload.html"     class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Upload Action</a></li>
                         <li><a href="leaderboard.html"class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Leaderboard</a></li>
-                        <li><a href="profile.html"    class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">My Profile</a></li>
                     </ul>
                 </div>
 
@@ -508,7 +509,6 @@
                     <ul class="space-y-3">
                         <li><a href="about.html"   class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">About Us</a></li>
                         <li><a href="contact.html" class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Contact</a></li>
-                        <li><a href="auth.html"    class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Sign In / Register</a></li>
                         <li><a href="analytics.html" class="text-outline-variant hover:text-tertiary-container transition-colors font-body-md">Analytics</a></li>
                     </ul>
                 </div>

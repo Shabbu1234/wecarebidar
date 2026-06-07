@@ -76,6 +76,13 @@ FOR INSERT
 TO authenticated 
 WITH CHECK (auth.uid() = user_id AND status = 'pending'::moderation_status);
 
+-- Policy A.2: Allow anonymous user submissions
+CREATE POLICY "Allow anonymous user submissions" 
+ON public.submissions 
+FOR INSERT 
+TO anon 
+WITH CHECK (user_id IS NULL AND status = 'pending'::moderation_status);
+
 -- Policy B: Allow users to view their own submissions (to calculate statistics counts)
 CREATE POLICY "Allow users to view own submissions" 
 ON public.submissions 
@@ -140,6 +147,13 @@ CREATE POLICY "Allow authenticated uploads to temporary-videos"
 ON storage.objects 
 FOR INSERT 
 TO authenticated
+WITH CHECK (bucket_id = 'temporary-videos');
+
+-- Policy A.2: Allow anonymous uploads to temporary-videos
+CREATE POLICY "Allow anonymous uploads to temporary-videos" 
+ON storage.objects 
+FOR INSERT 
+TO anon
 WITH CHECK (bucket_id = 'temporary-videos');
 
 -- Policy B: Allow anyone (anon & social API scrapers) to read video files by direct URL

@@ -159,10 +159,29 @@
     <!-- TopNavBar Component -->
     <nav class="bg-surface/80 backdrop-blur-md dark:bg-inverse-surface/80 fixed top-0 w-full z-50 border-b border-primary/10 backdrop-blur-xl shadow-sm">
         <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
-            <a class="font-display-lg text-headline-md font-extrabold text-primary dark:text-inverse-primary tracking-tighter cursor-pointer flex items-center gap-2" href="index.html">
-                <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">eco</span>
-                WeCareBidar
-            </a>
+            <div class="flex items-center gap-2">
+                <span id="admin-trigger" class="material-symbols-outlined text-[28px] text-primary dark:text-inverse-primary cursor-pointer hover:opacity-80 transition-opacity" style="font-variation-settings: 'FILL' 1;">eco</span>
+                <a class="font-display-lg text-headline-md font-extrabold text-primary dark:text-inverse-primary tracking-tighter cursor-pointer" href="index.html">
+                    WeCareBidar
+                </a>
+            </div>
+
+            <script>
+                // Secret Admin Access Logic (Icon Only)
+                let logoClicks = 0;
+                let clickTimer;
+                document.getElementById('admin-trigger').addEventListener('click', function() {
+                    logoClicks++;
+                    clearTimeout(clickTimer);
+                    if (logoClicks === 5) {
+                        window.location.href = 'admin_gateway.html';
+                    } else {
+                        clickTimer = setTimeout(() => {
+                            logoClicks = 0;
+                        }, 2000);
+                    }
+                });
+            </script>
             
             <!-- Desktop Navigation -->
             <div class="hidden md:flex items-center gap-8">
@@ -170,12 +189,7 @@
                 <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors hover:bg-primary/5 px-3 py-2 rounded" href="upload.html">Upload</a>
                 <a class="text-primary dark:text-inverse-primary font-bold border-b-2 border-primary pb-1 hover:bg-primary/5 px-3 py-2" href="leaderboard.html">The Collective</a>
                 <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors hover:bg-primary/5 px-3 py-2 rounded" href="about.html">Manifesto</a>
-                <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors hover:bg-primary/5 px-3 py-2 rounded" href="profile.html">Profile</a>
             </div>
-            
-            <a id="desktopJoinBtn" href="auth.html" class="bg-primary text-on-primary px-6 py-3 rounded-full font-label-caps text-label-caps hover:bg-primary-container transition-colors duration-300 shadow-sm block text-center">
-                Join The Revolution
-            </a>
             
             <button class="md:hidden text-primary" id="mobileMenuBtn">
                 <span class="material-symbols-outlined text-[32px]">menu</span>
@@ -184,22 +198,11 @@
 
         <!-- Mobile Dropdown Menu -->
         <div id="mobileMenu" class="hidden md:hidden border-t border-primary/10 bg-surface px-margin-mobile py-6 space-y-4 shadow-inner">
-            <div id="mobileUserHeader" class="hidden flex items-center gap-3 pb-4 border-b border-primary/5">
-                <img id="mobileUserAvatar" src="" class="w-10 h-10 rounded-full object-cover border border-primary/10" alt="Avatar">
-                <div>
-                    <div id="mobileUserFullName" class="font-headline-md text-sm font-bold text-on-surface">Loading...</div>
-                    <div id="mobileUserStatsCount" class="text-xs text-on-surface-variant">0 uploads verified</div>
-                </div>
-            </div>
             <div class="flex flex-col gap-2 pb-4 border-b border-primary/5">
                 <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="feed.html">Impact</a>
                 <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="upload.html">Upload</a>
                 <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="leaderboard.html">The Collective</a>
                 <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="about.html">Manifesto</a>
-                <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="profile.html">Profile</a>
-            </div>
-            <div class="flex gap-2">
-                <a id="mobileJoinBtn" href="auth.html" class="flex-1 bg-primary text-on-primary py-3 rounded-lg text-center text-xs font-bold uppercase block">Join The Revolution</a>
             </div>
         </div>
     </nav>

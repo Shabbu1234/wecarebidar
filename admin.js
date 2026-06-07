@@ -2,8 +2,8 @@
 // WeCareBidar - ADMIN COMMAND CENTER CONTROLLER
 // =======================================================
 
-let supabaseUrl = localStorage.getItem('SUPABASE_URL') || 'https://biykjcpjydcicwsgjgmi.supabase.co';
-let supabaseKey = localStorage.getItem('SUPABASE_KEY') || 'REPLACE_WITH_SUPABASE_SERVICE_ROLE_KEY';
+let supabaseUrl = localStorage.getItem('SUPABASE_URL') || '';
+let supabaseKey = localStorage.getItem('SUPABASE_KEY') || '';
 let antgvityWebhookUrl = localStorage.getItem('ANTGVITY_WEBHOOK_URL') || 'https://cloud.activepieces.com/api/v1/webhooks/PR3T46AavqHabHXUymUjM';
 
 let supabaseClient = null;
@@ -116,7 +116,11 @@ loginForm.addEventListener('submit', (e) => {
     return;
   }
 
-  if (token.startsWith('http')) {
+  // Custom Static Password Check
+  if (token === 'WeCareEnvironment_5854') {
+    supabaseUrl = 'https://biykjcpjydcicwsgjgmi.supabase.co';
+    supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDcyNjExMiwiZXhwIjoyMDk2MzAyMTEyfQ.i8lAIPqGlCR1FQBqCHNpBbX5MnZJ73nD1DIkbNQtJMU';
+  } else if (token.startsWith('http')) {
     const parts = token.split('|');
     if (parts.length === 2) {
       supabaseUrl = parts[0].trim();
@@ -134,6 +138,17 @@ loginForm.addEventListener('submit', (e) => {
   
   checkAuthentication();
 });
+
+// Password Toggle Visibility
+const togglePasswordBtn = document.getElementById('togglePassword');
+const eyeIcon = document.getElementById('eyeIcon');
+if (togglePasswordBtn && adminTokenInput) {
+    togglePasswordBtn.addEventListener('click', () => {
+        const isPassword = adminTokenInput.type === 'password';
+        adminTokenInput.type = isPassword ? 'text' : 'password';
+        eyeIcon.textContent = isPassword ? 'visibility_off' : 'visibility';
+    });
+}
 
 function logout() {
   localStorage.removeItem('SUPABASE_KEY');

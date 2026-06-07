@@ -8,18 +8,8 @@
   status = 200
 
 [[redirects]]
-  from = "/dashboard"
-  to = "/dashboard.html"
-  status = 200
-
-[[redirects]]
   from = "/upload"
   to = "/upload.html"
-  status = 200
-
-[[redirects]]
-  from = "/profile"
-  to = "/profile.html"
   status = 200
 
 [[redirects]]
@@ -37,25 +27,20 @@
   to = "/contact.html"
   status = 200
 
-[[redirects]]
-  from = "/admin"
-  to = "/admin.html"
-  status = 200
+# [[redirects]]
+#   from = "/admin"
+#   to = "/admin.html"
+#   status = 200
 
-[[redirects]]
-  from = "/moderation"
-  to = "/moderation.html"
-  status = 200
+# [[redirects]]
+#   from = "/moderation"
+#   to = "/moderation.html"
+#   status = 200
 
-[[redirects]]
-  from = "/analytics"
-  to = "/analytics.html"
-  status = 200
-
-[[redirects]]
-  from = "/auth"
-  to = "/auth.html"
-  status = 200
+# [[redirects]]
+#   from = "/analytics"
+#   to = "/analytics.html"
+#   status = 200
 
 # Security headers
 [[headers]]

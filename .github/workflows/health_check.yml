@@ -1,0 +1,68 @@
+name: 🔐 Verify Secrets & Health Check
+
+on:
+  workflow_dispatch: # Sirf manually trigger karo jab secrets check karni ho
+  push:
+    paths:
+      - '.github/workflows/**'
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔐 Check Required Secrets
+        run: |
+          echo "=== Checking Required Secrets ==="
+          
+          if [ -z "${{ secrets.SUPABASE_URL }}" ]; then
+            echo "❌ SUPABASE_URL - NOT SET"
+            MISSING=true
+          else
+            echo "✅ SUPABASE_URL - SET"
+          fi
+          
+          if [ -z "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" ]; then
+            echo "❌ SUPABASE_SERVICE_ROLE_KEY - NOT SET"
+            MISSING=true
+          else
+            echo "✅ SUPABASE_SERVICE_ROLE_KEY - SET"
+          fi
+          
+          if [ -z "${{ secrets.NVIDIA_API_KEY }}" ]; then
+            echo "❌ NVIDIA_API_KEY - NOT SET"
+            MISSING=true
+          else
+            echo "✅ NVIDIA_API_KEY - SET"
+          fi
+          
+          if [ "$MISSING" = "true" ]; then
+            echo ""
+            echo "⚠️  WARNING: Some secrets are missing!"
+            echo "Go to: Settings → Secrets and variables → Actions → New repository secret"
+            exit 1
+          else
+            echo ""
+            echo "✅ All secrets are properly configured!"
+          fi
+
+      - name: 🐍 Test Python Environment
+        run: |
+          python --version
+          pip install supabase --quiet
+          python -c "from supabase import create_client; print('✅ Supabase module OK')"
+
+      - name: 📋 Project Info
+        run: |
+          echo "=== WeCareBidar Project Health ==="
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Run Time: $(date -u)"
+          echo "Python Files:"
+          ls *.py 2>/dev/null || echo "No Python files"
+          echo "HTML Files:"
+          ls *.html 2>/dev/null | wc -l
+          echo "JavaScript Files:"
+          ls *.js 2>/dev/null | wc -l

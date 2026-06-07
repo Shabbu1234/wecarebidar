@@ -2,8 +2,8 @@
 // WeCareBidar - ADMIN VERIFICATION WORKSPACE CONTROLLER
 // =======================================================
 
-let supabaseUrl = localStorage.getItem('SUPABASE_URL') || 'https://biykjcpjydcicwsgjgmi.supabase.co';
-let supabaseKey = localStorage.getItem('SUPABASE_KEY') || 'REPLACE_WITH_SUPABASE_SERVICE_ROLE_KEY';
+let supabaseUrl = localStorage.getItem('SUPABASE_URL') || '';
+let supabaseKey = localStorage.getItem('SUPABASE_KEY') || '';
 let antgvityWebhookUrl = localStorage.getItem('ANTGVITY_WEBHOOK_URL') || 'https://cloud.activepieces.com/api/v1/webhooks/PR3T46AavqHabHXUymUjM';
 
 let supabaseClient = null;
@@ -113,7 +113,11 @@ loginForm.addEventListener('submit', (e) => {
     return;
   }
 
-  if (token.startsWith('http')) {
+  // Custom Static Password Check
+  if (token === 'WeCareEnvironment_5854') {
+    supabaseUrl = 'https://biykjcpjydcicwsgjgmi.supabase.co';
+    supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDcyNjExMiwiZXhwIjoyMDk2MzAyMTEyfQ.i8lAIPqGlCR1FQBqCHNpBbX5MnZJ73nD1DIkbNQtJMU';
+  } else if (token.startsWith('http')) {
     const parts = token.split('|');
     if (parts.length === 2) {
       supabaseUrl = parts[0].trim();
@@ -131,6 +135,17 @@ loginForm.addEventListener('submit', (e) => {
   
   checkAuthentication();
 });
+
+// Password Toggle Visibility
+const togglePasswordBtn = document.getElementById('togglePassword');
+const eyeIcon = document.getElementById('eyeIcon');
+if (togglePasswordBtn && adminTokenInput) {
+    togglePasswordBtn.addEventListener('click', () => {
+        const isPassword = adminTokenInput.type === 'password';
+        adminTokenInput.type = isPassword ? 'text' : 'password';
+        eyeIcon.textContent = isPassword ? 'visibility_off' : 'visibility';
+    });
+}
 
 function logout() {
   localStorage.removeItem('SUPABASE_KEY');
@@ -282,54 +297,20 @@ btnApprove.addEventListener('click', async () => {
   btnApprove.textContent = "Processing Approval...";
 
   try {
-    // 1. Send Webhook payload to Activepieces
-    const webhookPayload = {
-      submissionId: currentItem.id,
-      userId: currentItem.user_id,
-      title: currentItem.title || "Environmental Action",
-      location: currentItem.location || "Bidar",
-      category: currentItem.category || "General",
-      videoUrl: currentItem.video_url,
-      description: currentItem.user_description,
-      feedback: moderationFeedback.value.trim()
-    };
-
-    console.log("Posting payload to webhook:", antgvityWebhookUrl, webhookPayload);
-
-    const webhookResponse = await fetch(antgvityWebhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(webhookPayload)
-    });
-
-    if (!webhookResponse.ok) {
-      console.warn("Activepieces webhook returned non-200:", webhookResponse.status);
-    }
-
-    // 2. Clear video URL column and mark status as 'approved'
+    // 1. Update submissions table to mark as 'approved'
+    // We KEEP the video_url here so the GitHub Action cloud worker can pick it up for social media upload.
+    // The Python worker will handle purging the storage after a successful upload.
     const { error: dbError } = await supabaseClient
       .from('submissions')
       .update({
-        status: 'approved',
-        video_url: null // PURGE STORAGE COLUMNS
+        status: 'approved'
+        // video_url is NOT cleared here anymore.
       })
       .eq('id', currentItem.id);
 
     if (dbError) throw dbError;
 
-    // 3. Purge the raw video file from Supabase storage
-    const filename = extractFilename(currentItem.video_url);
-    if (filename) {
-      const { error: storageError } = await supabaseClient.storage
-        .from('temporary-videos')
-        .remove([filename]);
-      
-      if (storageError) {
-        console.warn("Video cleanup skipped (or already purged):", storageError.message);
-      }
-    }
-
-    showToast('Campaign Action Approved and Storage Purged.');
+    showToast('Campaign Action Approved! Video queued for cloud social publishing.');
     loadPendingSubmissions();
 
   } catch (err) {

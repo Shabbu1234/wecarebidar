@@ -4,31 +4,20 @@
 
 // 1. Supabase Initialization Configuration
 const DEFAULT_SUPABASE_URL = "https://biykjcpjydcicwsgjgmi.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_VLxlLLq7KawoBaLxq7IoXQ_NK2yPSce";
-const SUPABASE_SERVICE_ROLE_KEY = localStorage.getItem('SUPABASE_KEY') || "";
+const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MjYxMTIsImV4cCI6MjA5NjMwMjExMn0.UlOP5KBZzCoEy4fUeytx7nEcz4Xv7F-rGhs5Mib6u9M";
 
 const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || DEFAULT_SUPABASE_URL;
 const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || DEFAULT_SUPABASE_ANON_KEY;
 
 let supabaseClient;
-let supabaseAdmin; // Used to bypass RLS in Sandbox Dev Mode
 
 try {
   supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 } catch (e) {
   console.error("Supabase Initialization Error:", e);
 }
 
 // 2. DOM Elements
-const sandboxBanner = document.getElementById('sandboxBanner');
-const desktopJoinBtn = document.getElementById('desktopJoinBtn');
-const mobileJoinBtn = document.getElementById('mobileJoinBtn');
-const mobileUserHeader = document.getElementById('mobileUserHeader');
-const mobileUserAvatar = document.getElementById('mobileUserAvatar');
-const mobileUserFullName = document.getElementById('mobileUserFullName');
-const mobileUserStatsCount = document.getElementById('mobileUserStatsCount');
-
 const counterActionsApproved = document.getElementById('counterActionsApproved');
 const counterWasteRemoved = document.getElementById('counterWasteRemoved');
 const counterTreesPlanted = document.getElementById('counterTreesPlanted');
@@ -37,11 +26,7 @@ const feedGrid = document.getElementById('feedGrid');
 const filterBar = document.getElementById('filterBar');
 
 // 3. State Management
-let currentUser = null;
-let currentProfile = null;
-let isSandboxMode = false;
 let allSubmissions = [];
-let userUploadCounts = {}; // Map of user_id -> count of approved uploads
 
 const FALLBACK_IMAGES = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuB4WHl4DbEoUytFX6fgy3AbbL8hvoNSkfpeqvyAFqi5VzvqJvKSeRTcnpgVxxxh_uo6XdMYyFXVqOMttKx46_f6Bkta2N5DdC1bK-CGk0OR2RnNUtTHKNGW004VMgG4JE88trBTxz9UgkrUoFGYazpSMwlbmV2CEC6mLaRW_gF9bkek1ixfztuwmpIIxu0hAayAoh149rweUDvLV1SVRJSxpIX2hEg1UR0XAFuUpysOu9F6icQcjso2URueF5b5p3QVpuhaxjSkNqA", // Planting
@@ -49,86 +34,11 @@ const FALLBACK_IMAGES = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuAWYkrw2rAlk-KKHp7aq3dn_oo4nxFfbfZ-szCWPYL2yljyzn4CSwfrKFo9HCBZuX40qYhpezmZHCNyWdakDpxLuVpP-Al4tBifj8_D44MSiuj8EOK3O1UhIqINVNny-7uQ9nvxaEImlcQZqi8uXwnxqQ-aY3LZSmz_JNW4Siwoo49CnbMqP0dvnEGUiE7Im85XgmlInru1etZpfk9qxhn4b85MwvBq7Jb5anz_T1bsw7g5Fiyvy8IEbyuaUYaqKYU2BOeSeqaXRjE"  // Nature Bird
 ];
 
-// 4. Auth & User Profile Loading
-async function checkAuthSession() {
-  if (!supabaseClient) return;
-
-  try {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    if (session && session.user) {
-      currentUser = session.user;
-      isSandboxMode = false;
-
-      // Get profile
-      const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
-      
-      currentProfile = profile;
-    } else {
-      // Sandbox mode check
-      const sandboxUser = localStorage.getItem('SANDBOX_USER');
-      if (sandboxUser) {
-        currentProfile = JSON.parse(sandboxUser);
-        currentUser = { id: currentProfile.id, isSandbox: true };
-        isSandboxMode = true;
-        sandboxBanner.style.display = 'block';
-      }
-    }
-
-    updateNavbarUI();
-  } catch (err) {
-    console.warn("Auth check failed:", err);
-  }
-}
-
-// Update header button dynamically
-async function updateNavbarUI() {
-  if (currentUser && currentProfile) {
-    // Desktop button
-    desktopJoinBtn.textContent = "Dashboard";
-    desktopJoinBtn.href = "index.html";
-
-    // Mobile button
-    mobileJoinBtn.textContent = "Dashboard";
-    mobileJoinBtn.href = "index.html";
-
-    // Fetch user approved count for mobile header
-    const client = isSandboxMode ? supabaseAdmin : supabaseClient;
-    const { count } = await client
-      .from('submissions')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', currentUser.id)
-      .eq('status', 'approved');
-
-    const uploadsCount = count || 0;
-
-    // Mobile profile details display
-    const avatarUrl = currentProfile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentProfile.full_name)}`;
-    mobileUserAvatar.src = avatarUrl;
-    mobileUserFullName.textContent = currentProfile.full_name || "Citizen Rebel";
-    mobileUserStatsCount.textContent = `${uploadsCount} upload${uploadsCount === 1 ? '' : 's'} verified`;
-    mobileUserHeader.classList.remove('hidden');
-  } else {
-    // Unauthenticated view
-    desktopJoinBtn.textContent = "Join The Revolution";
-    desktopJoinBtn.href = "auth.html";
-    mobileJoinBtn.textContent = "Join The Revolution";
-    mobileJoinBtn.href = "auth.html";
-    mobileUserHeader.classList.add('hidden');
-  }
-}
-
-// 5. Data Hydration & Stats Calculations
+// 4. Data Hydration & Stats Calculations
 async function loadFeedData() {
   try {
-    const client = isSandboxMode ? supabaseAdmin : supabaseClient;
-
     // Retrieve approved submissions joined with profiles
-    const { data: submissions, error } = await client
+    const { data: submissions, error } = await supabaseClient
       .from('submissions')
       .select('*, profiles(id, full_name, avatar_url)')
       .eq('status', 'approved')
@@ -137,14 +47,6 @@ async function loadFeedData() {
     if (error) throw error;
 
     allSubmissions = submissions || [];
-
-    // Calculate contributor upload count map to display correct levels/ranks on cards
-    userUploadCounts = {};
-    allSubmissions.forEach(sub => {
-      if (sub.user_id) {
-        userUploadCounts[sub.user_id] = (userUploadCounts[sub.user_id] || 0) + 1;
-      }
-    });
 
     calculateMovementStats();
     renderFeedGrid("all");
@@ -206,10 +108,6 @@ function renderFeedGrid(filterCategory = "all") {
     const contributorName = sub.profiles?.full_name || "Anonymous Rebel";
     const contributorAvatar = sub.profiles?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(contributorName)}`;
     
-    // Level calculation for contributor
-    const totalUserActions = userUploadCounts[sub.user_id] || 1;
-    const rankText = getEcoRankName(totalUserActions);
-
     const dateText = new Date(sub.created_at).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -295,7 +193,6 @@ function renderFeedGrid(filterCategory = "all") {
               </div>
               <div class="text-left">
                 <div class="font-headline-md text-sm font-bold text-on-surface">${contributorName}</div>
-                <div class="font-label-caps text-[9px] text-outline">${rankText}</div>
               </div>
             </div>
             <div class="text-right">
@@ -323,17 +220,6 @@ function renderFeedGrid(filterCategory = "all") {
 
     feedGrid.appendChild(card);
   });
-}
-
-// Resolve Rank names based on upload count
-function getEcoRankName(uploads) {
-  if (uploads <= 1) return "Eco Recruit (Lvl 1)";
-  if (uploads === 2) return "Eco Defender (Lvl 2)";
-  if (uploads <= 4) return "Eco Specialist (Lvl 3)";
-  if (uploads <= 6) return "Eco Captain (Lvl 4)";
-  if (uploads <= 8) return "Eco Commander (Lvl 5)";
-  if (uploads <= 10) return "Eco Leader (Lvl 6)";
-  return "Eco Warrior (Lvl 7)";
 }
 
 // Category Icons
@@ -410,10 +296,7 @@ filterBar.addEventListener('click', (e) => {
 
 // Initialization sequence
 async function initFeed() {
-  await checkAuthSession();
   await loadFeedData();
 }
 
 initFeed();
-
-

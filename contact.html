@@ -141,7 +141,27 @@
 <!-- TopAppBar -->
 <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-20 bg-primary dark:bg-primary backdrop-blur-md bg-opacity-80 border-b border-primary-container md:flex hidden" style="box-shadow: 0px 20px 50px rgba(0,0,0,0.08);">
 <div class="flex items-center gap-gutter">
-<span class="text-headline-md font-headline-md font-black tracking-tight text-on-primary">ECO-COMMAND</span>
+<div class="flex items-center gap-2">
+    <span id="admin-trigger" class="material-symbols-outlined text-[28px] text-on-primary cursor-pointer hover:opacity-80 transition-opacity" style="font-variation-settings: 'FILL' 1;">eco</span>
+    <a href="index.html" class="text-headline-md font-headline-md font-black tracking-tight text-on-primary">ECO-COMMAND</a>
+</div>
+
+<script>
+    // Secret Admin Access Logic (Icon Only)
+    let logoClicks = 0;
+    let clickTimer;
+    document.getElementById('admin-trigger').addEventListener('click', function() {
+        logoClicks++;
+        clearTimeout(clickTimer);
+        if (logoClicks === 5) {
+            window.location.href = 'admin_gateway.html';
+        } else {
+            clickTimer = setTimeout(() => {
+                logoClicks = 0;
+            }, 2000);
+        }
+    });
+</script>
 <nav class="flex gap-gutter">
 <a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-on-primary hover:bg-primary-container transition-colors duration-200 px-3 py-2 rounded" href="index.html">Home</a>
 <a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-on-primary hover:bg-primary-container transition-colors duration-200 px-3 py-2 rounded" href="feed.html">Feed</a>

@@ -4,7 +4,7 @@
 
 // 1. Supabase Initialization Configuration
 const DEFAULT_SUPABASE_URL = "https://biykjcpjydcicwsgjgmi.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_VLxlLLq7KawoBaLxq7IoXQ_NK2yPSce";
+const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpeWprY3BqeWRjaWN3c2dqZ21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MjYxMTIsImV4cCI6MjA5NjMwMjExMn0.UlOP5KBZzCoEy4fUeytx7nEcz4Xv7F-rGhs5Mib6u9M";
 const SUPABASE_SERVICE_ROLE_KEY = localStorage.getItem('SUPABASE_KEY') || "";
 
 const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || DEFAULT_SUPABASE_URL;
@@ -73,34 +73,11 @@ function showToast(message, type = 'success') {
   }, 4000);
 }
 
-// 5. Auth Session Checking
+// 5. Auth Session Checking (Disabled)
 async function checkAuthSession() {
-  if (!supabaseClient) return;
-
-  try {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    if (session && session.user) {
-      currentUser = session.user;
-      isSandboxMode = false;
-    } else {
-      // Check Sandbox Dev Mode Session
-      const sandboxUser = localStorage.getItem('SANDBOX_USER');
-      if (sandboxUser) {
-        currentProfile = JSON.parse(sandboxUser);
-        currentUser = { id: currentProfile.id, isSandbox: true };
-        isSandboxMode = true;
-        sandboxBanner.style.display = 'block';
-      } else {
-        // No session at all, redirect to auth
-        window.location.href = 'auth.html';
-        return;
-      }
-    }
-  } catch (err) {
-    console.error("Auth check failed:", err);
-    window.location.href = 'auth.html';
-  }
+  // Authentication is disabled as per user request.
+  currentUser = null;
+  isSandboxMode = false;
 }
 
 // 6. Character Count Handler for Notes
@@ -203,11 +180,7 @@ btnCancelUpload.addEventListener('click', resetFileSelection);
 uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  if (!currentUser) {
-    showToast('Session expired. Please log in again.', 'error');
-    window.location.href = 'auth.html';
-    return;
-  }
+  // AUTH CHECK REMOVED: Anyone can upload now.
 
   if (!selectedFile) {
     showToast('Please attach a valid video file first!', 'error');
@@ -240,7 +213,8 @@ uploadForm.addEventListener('submit', async (e) => {
 
     // Create a unique clean file name
     const ext = selectedFile.name.split('.').pop().toLowerCase();
-    const cleanFileName = `${Date.now()}_action_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+    const prefix = currentUser ? 'action' : 'anon';
+    const cleanFileName = `${Date.now()}_${prefix}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
 
     const client = isSandboxMode ? supabaseAdmin : supabaseClient;
 
@@ -277,7 +251,7 @@ uploadForm.addEventListener('submit', async (e) => {
       .from('submissions')
       .insert([
         {
-          user_id: currentUser.id,
+          user_id: currentUser ? currentUser.id : null, // Set to null for anonymous uploads
           user_description: unifiedDescription,
           video_url: publicVideoUrl,
           title: title,

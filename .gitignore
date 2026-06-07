@@ -1,5 +1,36 @@
+# Environment files - KABHI PUSH MAT KARO
 .env
+.env.local
+.env.production
+
+# Example file allow hai - push kar sakte hain
+!.env.example
+
+# Logs
 *.log
+logs/
+
+# Node modules
 node_modules/
+npm-debug.log*
+
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Temporary files
+temp_downloads/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Browser-use cache
+browser-use/.cache/
+
+# Python virtual environment
+venv/
+.venv/
+env/
