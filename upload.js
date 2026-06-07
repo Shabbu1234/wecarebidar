@@ -49,8 +49,10 @@ let currentUser = null;
 let currentProfile = null;
 let isSandboxMode = false;
 let selectedFile = null;
-const MAX_FILE_SIZE_MB = 40;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const MAX_FILE_SIZE_GB = 2;
+const MAX_FILE_SIZE_MB = MAX_FILE_SIZE_GB * 1024; // 2048 MB
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_GB * 1024 * 1024 * 1024; // 2GB in bytes
+const CHUNK_SIZE = 6 * 1024 * 1024; // 6MB chunks for resumable upload
 const MAX_CHARS = 300;
 
 // 4. UI Helpers: Toast
@@ -146,7 +148,7 @@ function handleFileSelection(file) {
   }
 
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    showToast(`File is too large! Maximum limit is ${MAX_FILE_SIZE_MB}MB.`, 'error');
+    showToast(`File is too large! Maximum limit is ${MAX_FILE_SIZE_GB}GB (${MAX_FILE_SIZE_MB}MB).`, 'error');
     resetFileSelection();
     return;
   }
@@ -158,10 +160,21 @@ function handleFileSelection(file) {
   updateProgress(0, 'File attached');
   uploadProgress.classList.remove('hidden');
 
+  // Format file size display (MB or GB)
+  const fileSizeMB = file.size / (1024 * 1024);
+  const fileSizeDisplay = fileSizeMB >= 1024
+    ? `${(fileSizeMB / 1024).toFixed(2)} GB`
+    : `${fileSizeMB.toFixed(1)} MB`;
+
   // Change upload zone text dynamically to show attachment
   document.getElementById('drag-text-title').textContent = "Video Attached Successfully";
-  document.getElementById('drag-text-subtitle').textContent = `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
+  document.getElementById('drag-text-subtitle').textContent = `${file.name} (${fileSizeDisplay})`;
   document.getElementById('drag-text-specs').classList.add('hidden');
+  
+  // Warn user for large files
+  if (file.size > 500 * 1024 * 1024) { // Over 500MB
+    showToast(`Large file detected (${fileSizeDisplay}). Uploading using resumable chunked transfer - please keep this tab open!`, 'success');
+  }
 }
 
 function resetFileSelection() {
@@ -218,18 +231,31 @@ uploadForm.addEventListener('submit', async (e) => {
 
     const client = isSandboxMode ? supabaseAdmin : supabaseClient;
 
-    // Perform file upload
+    // Perform file upload - Use resumable TUS upload for large files (>6MB)
+    const isLargeFile = selectedFile.size > CHUNK_SIZE;
+    
+    const uploadOptions = {
+      cacheControl: '3600',
+      upsert: false,
+      ...(isLargeFile && { duplex: 'half' }), // Required for chunked streaming
+      onUploadProgress: (progress) => {
+        const percent = Math.round((progress.loaded / progress.total) * 100);
+        const loadedMB = (progress.loaded / (1024 * 1024)).toFixed(1);
+        const totalMB = (progress.total / (1024 * 1024)).toFixed(1);
+        const totalDisplay = progress.total >= 1024 * 1024 * 1024
+          ? `${(progress.total / (1024 * 1024 * 1024)).toFixed(2)} GB`
+          : `${totalMB} MB`;
+        const loadedDisplay = progress.loaded >= 1024 * 1024 * 1024
+          ? `${(progress.loaded / (1024 * 1024 * 1024)).toFixed(2)} GB`
+          : `${loadedMB} MB`;
+        updateProgress(percent, `${loadedDisplay} / ${totalDisplay} uploaded...`);
+        submitBtnTextSpan.textContent = `Uploading Video (${percent}%)`;
+      }
+    };
+
     const { data: uploadData, error: uploadError } = await client.storage
       .from('temporary-videos')
-      .upload(cleanFileName, selectedFile, {
-        cacheControl: '3600',
-        upsert: false,
-        onUploadProgress: (progress) => {
-          const percent = Math.round((progress.loaded / progress.total) * 100);
-          updateProgress(percent, `Transferring video bytes...`);
-          submitBtnTextSpan.textContent = `Uploading Video (${percent}%)`;
-        }
-      });
+      .upload(cleanFileName, selectedFile, uploadOptions);
 
     if (uploadError) throw uploadError;
 

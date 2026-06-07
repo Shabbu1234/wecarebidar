@@ -79,14 +79,27 @@ async def main():
         os.makedirs(local_dir, exist_ok=True)
         local_path = os.path.join(local_dir, filename)
         
-        # 2. Download the video
+        # 2. Download the video - Streaming chunked download for large files (up to 2GB)
         try:
             logger.info(f"Downloading video from Supabase to {local_path}...")
-            r = requests.get(video_url, stream=True)
+            r = requests.get(video_url, stream=True, timeout=300)  # 5 min timeout
             if r.status_code == 200:
+                total_size = int(r.headers.get('content-length', 0))
+                total_mb = total_size / (1024 * 1024)
+                logger.info(f"File size: {total_mb:.1f} MB ({total_size} bytes)")
+                
+                downloaded = 0
+                chunk_size = 8 * 1024 * 1024  # 8MB chunks for fast download
                 with open(local_path, 'wb') as f:
-                    for chunk in r.iter_content(1024):
-                        f.write(chunk)
+                    for chunk in r.iter_content(chunk_size):
+                        if chunk:
+                            f.write(chunk)
+                            downloaded += len(chunk)
+                            if total_size > 0:
+                                pct = (downloaded / total_size) * 100
+                                if downloaded % (50 * 1024 * 1024) < chunk_size:  # Log every 50MB
+                                    logger.info(f"Download progress: {pct:.1f}% ({downloaded/(1024*1024):.1f} MB)")
+                logger.info(f"Download complete: {downloaded/(1024*1024):.1f} MB downloaded")
             else:
                 logger.error(f"Failed to download video: HTTP {r.status_code}")
                 continue
