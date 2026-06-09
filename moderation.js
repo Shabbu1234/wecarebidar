@@ -497,7 +497,9 @@ btnApprove.addEventListener('click', async () => {
       videoId: currentItem.id,
       videoUrl: currentItem.video_url || "",
       user_description: currentItem.user_description || "",
-      bucketFileName: bucketFileName
+      bucketFileName: bucketFileName,
+      cloudinaryPublicId: currentItem.cloudinary_public_id || "",
+      pixeldrainFileId: currentItem.pixeldrain_file_id || ""
     };
 
     console.log("Triggering AntGvity webhook with payload:", payload);

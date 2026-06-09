@@ -35,7 +35,7 @@ jobs:
       - name: 📦 Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install playwright requests langchain-openai browser-use pydantic==2.9.2
+          pip install playwright requests langchain-openai ./browser-use
           python -m playwright install --with-deps chromium
 
       - name: 🚀 Run Auto Publisher (Social Upload & Cleanup)
