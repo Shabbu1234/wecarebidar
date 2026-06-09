@@ -40,7 +40,9 @@ ChatOpenAI.provider = provider_prop
 # Monkeypatch ChatOpenAI.with_structured_output to force json_mode for NVIDIA NIM
 original_with_structured_output = ChatOpenAI.with_structured_output
 def patched_with_structured_output(self, schema, *, method="auto", include_raw=False, **kwargs):
-    if "nvidia" in getattr(self, "base_url", "") or "nvidia" in getattr(self, "model_name", ""):
+    api_base = str(getattr(self, "openai_api_base", "") or "")
+    model_name = str(getattr(self, "model_name", "") or "")
+    if "nvidia" in api_base.lower() or "nvidia" in model_name.lower():
         return original_with_structured_output(self, schema, method="json_mode", include_raw=include_raw, **kwargs)
     return original_with_structured_output(self, schema, method=method, include_raw=include_raw, **kwargs)
 ChatOpenAI.with_structured_output = patched_with_structured_output
