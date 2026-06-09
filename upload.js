@@ -39,8 +39,12 @@ let selectedFile = null;
 const MAX_FILE_SIZE_GB = 2;
 const MAX_FILE_SIZE_MB = MAX_FILE_SIZE_GB * 1024; // 2048 MB
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_GB * 1024 * 1024 * 1024; // 2GB in bytes
-const CHUNK_SIZE = 6 * 1024 * 1024; // 6MB chunks for resumable upload
 const MAX_CHARS = 300;
+
+// Pixeldrain API key for direct browser upload
+// This is safe to have client-side — it only allows uploading to your account
+const PIXELDRAIN_API_KEY = 'bcc7feb8-edb2-4054-8a13-feb93f0e215b';
+const PIXELDRAIN_API_BASE = 'https://pixeldrain.net';
 
 // 4. UI Helpers: Toast
 function showToast(message, type = 'success') {
@@ -62,12 +66,22 @@ function showToast(message, type = 'success') {
   }, 4000);
 }
 
-// 5. Auth Session Checking (Disabled)
+// 5. Auth Session Checking
 async function checkAuthSession() {
-  // Authentication is disabled as per user request.
-  currentUser = null;
-  isSandboxMode = false;
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      currentUser = user;
+      isSandboxMode = false;
+      if (sandboxBanner) sandboxBanner.style.display = 'none';
+      console.log("Logged in user uploading campaign action:", user.email);
+    } else {
+      currentUser = null;
+      isSandboxMode = false;
+      console.log("Anonymous user uploading campaign action.");
+    }
+  });
 }
+
 
 // 6. Character Count Handler for Notes
 descriptionInput.addEventListener('input', function() {
@@ -177,7 +191,11 @@ function resetFileSelection() {
 btnCancelUpload.addEventListener('click', () => {
   if (window.activeUploadTask) {
     try {
-      window.activeUploadTask.cancel();
+      if (typeof window.activeUploadTask.cancel === 'function') {
+        window.activeUploadTask.cancel();
+      } else if (typeof window.activeUploadTask.abort === 'function') {
+        window.activeUploadTask.abort();
+      }
       console.log("Upload task cancelled by user.");
     } catch (e) {
       console.error("Error cancelling upload:", e);
@@ -222,46 +240,80 @@ uploadForm.addEventListener('submit', async (e) => {
     submitBtnIconSpan.textContent = "sync";
     submitBtnIconSpan.classList.add('animate-spin');
 
-    // Create a unique clean file name
-    const ext = selectedFile.name.split('.').pop().toLowerCase();
-    const prefix = currentUser ? 'action' : 'anon';
-    const cleanFileName = `${Date.now()}_${prefix}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+    // -------------------------------------------------------
+    // DIRECT CLOUDINARY UPLOAD (works on deployed site + local)
+    // Uses XMLHttpRequest so we can track upload progress
+    // -------------------------------------------------------
+    const cloudinaryResponse = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      let cloudName = (typeof cloudinaryConfig !== 'undefined' && cloudinaryConfig.cloudName) || 'dqm62mqbs';
+      let uploadPreset = (typeof cloudinaryConfig !== 'undefined' && cloudinaryConfig.uploadPreset) || 'wecare_preset';
+      
+      // Secure fallback checks to prevent null/undefined strings from breaking client upload
+      if (!cloudName || cloudName === 'null' || cloudName === 'undefined' || cloudName.trim() === '') {
+        cloudName = 'dqm62mqbs';
+      }
+      if (!uploadPreset || uploadPreset === 'null' || uploadPreset === 'undefined' || uploadPreset.trim() === '') {
+        uploadPreset = 'wecare_preset';
+      }
+      
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`);
+      window.activeUploadTask = xhr;
 
-    // Upload to Firebase Storage
-    const publicVideoUrl = await new Promise((resolve, reject) => {
-      const storageRef = storage.ref().child(`temporary-videos/${cleanFileName}`);
-      const uploadTask = storageRef.put(selectedFile);
-      window.activeUploadTask = uploadTask;
-
-      uploadTask.on('state_changed', 
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          const percent = Math.round(progress);
-          const loadedMB = (snapshot.bytesTransferred / (1024 * 1024)).toFixed(1);
-          const totalMB = (snapshot.totalBytes / (1024 * 1024)).toFixed(1);
-          const totalDisplay = snapshot.totalBytes >= 1024 * 1024 * 1024
-            ? `${(snapshot.totalBytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          const loadedMB = (e.loaded / (1024 * 1024)).toFixed(1);
+          const totalMB = (e.total / (1024 * 1024)).toFixed(1);
+          const totalDisplay = e.total >= 1024 * 1024 * 1024
+            ? `${(e.total / (1024 * 1024 * 1024)).toFixed(2)} GB`
             : `${totalMB} MB`;
-          const loadedDisplay = snapshot.bytesTransferred >= 1024 * 1024 * 1024
-            ? `${(snapshot.bytesTransferred / (1024 * 1024 * 1024)).toFixed(2)} GB`
+          const loadedDisplay = e.loaded >= 1024 * 1024 * 1024
+            ? `${(e.loaded / (1024 * 1024 * 1024)).toFixed(2)} GB`
             : `${loadedMB} MB`;
           updateProgress(percent, `${loadedDisplay} / ${totalDisplay} uploaded...`);
           submitBtnTextSpan.textContent = `Uploading Video (${percent}%)`;
-        }, 
-        (error) => {
-          window.activeUploadTask = null;
-          reject(error);
-        }, 
-        async () => {
-          window.activeUploadTask = null;
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        window.activeUploadTask = null;
+        if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-            resolve(downloadURL);
+            const responseData = JSON.parse(xhr.responseText);
+            if (responseData.secure_url) {
+              resolve({ success: true, secure_url: responseData.secure_url, public_id: responseData.public_id });
+            } else {
+              reject(new Error(responseData.error?.message || 'Cloudinary upload failed.'));
+            }
           } catch (err) {
-            reject(err);
+            reject(new Error('Failed to parse Cloudinary response.'));
+          }
+        } else {
+          try {
+            const responseData = JSON.parse(xhr.responseText);
+            reject(new Error(responseData.error?.message || `Upload failed with status ${xhr.status}`));
+          } catch(e) {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
           }
         }
-      );
+      });
+
+      xhr.addEventListener('error', () => {
+        window.activeUploadTask = null;
+        reject(new Error('Network error during upload. Please check your connection.'));
+      });
+
+      xhr.addEventListener('abort', () => {
+        window.activeUploadTask = null;
+        reject(new Error('Upload cancelled by user.'));
+      });
+
+      // Send as FormData with the file and upload preset
+      const formData = new FormData();
+      formData.append('file', selectedFile, selectedFile.name);
+      formData.append('upload_preset', uploadPreset);
+      xhr.send(formData);
     });
 
     updateProgress(100, 'Registering environmental action record...');
@@ -270,12 +322,17 @@ uploadForm.addEventListener('submit', async (e) => {
     // Format user description to display beautifully in admin and automation
     const unifiedDescription = `Campaign: ${title}\nZone: ${location}\nCategory: ${category}\nNotes: ${notes}`;
 
+    // Store the raw Cloudinary download/stream URL
+    const videoUrl = cloudinaryResponse.secure_url;
+
     // Write to submissions collection in Firestore
     try {
       await db.collection('submissions').add({
         user_id: currentUser ? currentUser.uid : null,
         user_description: unifiedDescription,
-        video_url: publicVideoUrl,
+        video_url: videoUrl,
+        cloudinary_public_id: cloudinaryResponse.public_id || null,
+        pixeldrain_file_id: cloudinaryResponse.public_id || null, // Fallback key just in case
         title: title,
         location: location,
         category: category,
@@ -283,20 +340,23 @@ uploadForm.addEventListener('submit', async (e) => {
         created_at: firebase.firestore.FieldValue.serverTimestamp()
       });
     } catch (dbError) {
-      // Rollback video upload if DB record fails
-      try {
-        await storage.ref().child(`temporary-videos/${cleanFileName}`).delete();
-      } catch (delError) {
-        console.error("Cleanup upload rollback failed:", delError);
-      }
+      console.error("Firestore submission failed.", dbError);
       throw dbError;
     }
 
     // Success state
     submitBtnIconSpan.classList.remove('animate-spin');
     submitBtnIconSpan.textContent = "check_circle";
-    submitBtnTextSpan.textContent = "Action Submitted!";
+    submitBtnTextSpan.textContent = "Done";
+    submitBtn.classList.remove('bg-primary', 'hover:bg-surface-tint');
     submitBtn.classList.add('bg-tertiary-container', 'text-on-tertiary-container');
+    submitBtn.disabled = false;
+
+    // Attach click listener for redirecting manually
+    submitBtn.onclick = (e) => {
+      e.preventDefault();
+      window.location.href = 'index.html';
+    };
 
     // Animate lifecycle stepper to Verification (Step 2)
     const step2Circle = document.getElementById('step2Circle');
@@ -308,11 +368,7 @@ uploadForm.addEventListener('submit', async (e) => {
       step2Text.className = "font-label-caps text-label-caps text-primary";
     }
 
-    showToast('Campaign action submitted for verification!', 'success');
-
-    setTimeout(() => {
-      window.location.href = 'index.html';
-    }, 2000);
+    showToast('Your video uploaded successfully! Campaign action submitted for verification.', 'success');
 
   } catch (error) {
     console.error("Submission failed:", error);

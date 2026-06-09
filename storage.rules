@@ -1,0 +1,22 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // User Avatars
+    match /avatars/{userId} {
+      allow read: if true;
+      allow write, delete: if request.auth != null && (
+        userId.split('\\.')[0] == request.auth.uid || 
+        request.auth.token.email == 'shahabahmulla@gmail.com'
+      );
+    }
+    
+    // Temporary Cleanup Videos
+    match /temporary-videos/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+      // Allow deletion by user or admin
+      allow delete: if request.auth != null;
+    }
+  }
+}

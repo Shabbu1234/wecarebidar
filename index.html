@@ -6,8 +6,15 @@
     <title>WeCareBidar - Environmental Revolution for Bidar</title>
     <meta name="description" content="WeCareBidar — A youth-powered movement transforming Bidar through cleanliness, sustainability, and verifiable environmental action. Join the revolution today."/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Firebase SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="firebase_config.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+
 
     <script id="tailwind-config">
         tailwind.config = {
@@ -234,8 +241,8 @@
             </div>
 
             <!-- Desktop CTA -->
-            <div class="hidden md:flex items-center gap-3">
-                <!-- No Login Required -->
+            <div class="hidden md:flex items-center gap-3" id="auth-cta-container">
+                <!-- Dynamically populated by auth state observer -->
             </div>
 
             <!-- Mobile Menu Button -->
@@ -246,7 +253,7 @@
 
         <!-- Mobile Menu -->
         <div id="mobileMenu" class="md:hidden bg-surface/95 backdrop-blur-xl border-t border-primary/10">
-            <div class="flex flex-col px-margin-mobile py-4 gap-4">
+            <div class="flex flex-col px-margin-mobile py-4 gap-4" id="mobile-menu-links">
                 <a href="#impact"     class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">Impact</a>
                 <a href="#features"   class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">Features</a>
                 <a href="#process"    class="text-on-surface font-body-md py-2 border-b border-outline-variant/20">How It Works</a>
@@ -621,6 +628,75 @@
                 }
             });
         });
+
+        // ── Firebase Auth State Observer for Navigation ──
+        if (typeof auth !== 'undefined') {
+            auth.onAuthStateChanged(async (user) => {
+                const ctaContainer = document.getElementById('auth-cta-container');
+                const mobileMenuLinks = document.getElementById('mobile-menu-links');
+                
+                // Clean up previous dynamic mobile nodes
+                const dynamicMobileNode = document.getElementById('mobile-auth-link');
+                if (dynamicMobileNode) dynamicMobileNode.remove();
+                
+                if (user) {
+                    // Logged In
+                    let name = "Eco-Rebel";
+                    let avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.uid}`;
+                    try {
+                        const profileSnap = await db.collection('profiles').document(user.uid).get();
+                        if (profileSnap.exists) {
+                            const profileData = profileSnap.data();
+                            name = profileData.full_name || name;
+                            avatarUrl = profileData.avatar_url || avatarUrl;
+                        }
+                    } catch (err) {
+                        console.error("Error loading profile for nav:", err);
+                    }
+                    
+                    // Desktop Nav
+                    ctaContainer.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <a href="profile.html" class="flex items-center gap-2 hover:opacity-85 transition-opacity">
+                                <img src="${avatarUrl}" class="w-8 h-8 rounded-full border border-primary/20 object-cover" alt="User Profile">
+                                <span class="text-sm font-semibold text-primary truncate max-w-[120px]">${name}</span>
+                            </a>
+                            <button id="btn-logout-nav" class="text-xs bg-outline-variant/20 hover:bg-outline-variant/40 text-on-surface-variant px-3 py-1.5 rounded-full transition-colors font-semibold">
+                                Sign Out
+                            </button>
+                        </div>
+                    `;
+                    document.getElementById('btn-logout-nav').addEventListener('click', () => {
+                        auth.signOut();
+                    });
+
+                    // Mobile Nav
+                    const mobileProfileLink = document.createElement('a');
+                    mobileProfileLink.id = 'mobile-auth-link';
+                    mobileProfileLink.href = 'profile.html';
+                    mobileProfileLink.className = 'text-primary font-bold py-2 border-b border-outline-variant/20 flex items-center gap-2';
+                    mobileProfileLink.innerHTML = `<img src="${avatarUrl}" class="w-6 h-6 rounded-full border border-primary/20 object-cover"> My Profile`;
+                    mobileMenuLinks.appendChild(mobileProfileLink);
+                } else {
+                    // Logged Out
+                    // Desktop Nav
+                    ctaContainer.innerHTML = `
+                        <a href="auth.html" class="bg-primary text-on-primary px-5 py-2 rounded-full font-body-md font-semibold hover:bg-primary-container transition-all text-sm shadow-[0_4px_12px_rgba(0,56,32,0.15)]">
+                            Sign In
+                        </a>
+                    `;
+
+                    // Mobile Nav
+                    const mobileLoginLink = document.createElement('a');
+                    mobileLoginLink.id = 'mobile-auth-link';
+                    mobileLoginLink.href = 'auth.html';
+                    mobileLoginLink.className = 'text-primary font-bold py-2 border-b border-outline-variant/20 flex items-center gap-1';
+                    mobileLoginLink.innerHTML = `<span class="material-symbols-outlined text-lg">login</span> Sign In`;
+                    mobileMenuLinks.appendChild(mobileLoginLink);
+                }
+            });
+        }
     </script>
+
 </body>
 </html>

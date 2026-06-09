@@ -211,7 +211,11 @@
                 <a class="font-headline-md text-headline-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 hover:opacity-80 cursor-pointer" href="about.html">
                     Manifesto
                 </a>
-                </nav>
+                <div class="h-4 w-px bg-outline-variant/30"></div>
+                <div id="auth-cta-container" class="flex items-center gap-3">
+                    <!-- Dynamic -->
+                </div>
+            </nav>
             
             <button class="md:hidden text-primary" id="mobileMenuBtn">
                 <span class="material-symbols-outlined text-[32px]">menu</span>
@@ -220,7 +224,7 @@
 
         <!-- Mobile Dropdown Menu -->
         <div id="mobileMenu" class="hidden md:hidden border-t border-primary/10 bg-surface px-margin-mobile py-6 space-y-4 shadow-inner">
-            <div class="flex flex-col gap-2 pb-4 border-b border-primary/5">
+            <div class="flex flex-col gap-2 pb-4 border-b border-primary/5" id="mobile-menu-links">
                 <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="feed.html">Impact</a>
                 <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="upload.html">Upload</a>
                 <a class="text-on-surface-variant text-sm font-semibold py-1 block" href="leaderboard.html">The Collective</a>
@@ -386,6 +390,74 @@
         if (mobileMenuBtn && mobileMenu) {
             mobileMenuBtn.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // ── Firebase Auth State Observer for Navigation ──
+        if (typeof auth !== 'undefined') {
+            auth.onAuthStateChanged(async (user) => {
+                const ctaContainer = document.getElementById('auth-cta-container');
+                const mobileMenuLinks = document.getElementById('mobile-menu-links');
+                
+                // Clean up previous dynamic mobile nodes
+                const dynamicMobileNode = document.getElementById('mobile-auth-link');
+                if (dynamicMobileNode) dynamicMobileNode.remove();
+                
+                if (user) {
+                    // Logged In
+                    let name = "Eco-Rebel";
+                    let avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.uid}`;
+                    try {
+                        const profileSnap = await db.collection('profiles').document(user.uid).get();
+                        if (profileSnap.exists) {
+                            const profileData = profileSnap.data();
+                            name = profileData.full_name || name;
+                            avatarUrl = profileData.avatar_url || avatarUrl;
+                        }
+                    } catch (err) {
+                        console.error("Error loading profile for nav:", err);
+                    }
+                    
+                    // Desktop Nav
+                    ctaContainer.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <a href="profile.html" class="flex items-center gap-2 hover:opacity-85 transition-opacity">
+                                <img src="${avatarUrl}" class="w-8 h-8 rounded-full border border-primary/20 object-cover" alt="User Profile">
+                                <span class="text-sm font-semibold text-primary truncate max-w-[120px]">${name}</span>
+                            </a>
+                            <button id="btn-logout-nav" class="text-xs bg-outline-variant/20 hover:bg-outline-variant/40 text-on-surface-variant px-3 py-1.5 rounded-full transition-colors font-semibold">
+                                Sign Out
+                            </button>
+                        </div>
+                    `;
+                    document.getElementById('btn-logout-nav').addEventListener('click', () => {
+                        auth.signOut();
+                    });
+
+                    // Mobile Nav
+                    const mobileProfileLink = document.createElement('a');
+                    mobileProfileLink.id = 'mobile-auth-link';
+                    mobileProfileLink.href = 'profile.html';
+                    mobileProfileLink.className = 'text-primary font-bold py-2 border-b border-outline-variant/20 flex items-center gap-2';
+                    mobileProfileLink.innerHTML = `<img src="${avatarUrl}" class="w-6 h-6 rounded-full border border-primary/20 object-cover"> My Profile`;
+                    mobileMenuLinks.appendChild(mobileProfileLink);
+                } else {
+                    // Logged Out
+                    // Desktop Nav
+                    ctaContainer.innerHTML = `
+                        <a href="auth.html" class="bg-primary text-on-primary px-5 py-2 rounded-full font-body-md font-semibold hover:bg-primary-container transition-all text-sm shadow-[0_4px_12px_rgba(0,56,32,0.15)]">
+                            Sign In
+                        </a>
+                    `;
+
+                    // Mobile Nav
+                    const mobileLoginLink = document.createElement('a');
+                    mobileLoginLink.id = 'mobile-auth-link';
+                    mobileLoginLink.href = 'auth.html';
+                    mobileLoginLink.className = 'text-primary font-bold py-2 border-b border-outline-variant/20 flex items-center gap-1';
+                    mobileLoginLink.innerHTML = `<span class="material-symbols-outlined text-lg">login</span> Sign In`;
+                    mobileMenuLinks.appendChild(mobileLoginLink);
+                }
             });
         }
     </script>

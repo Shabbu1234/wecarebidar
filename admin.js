@@ -64,7 +64,7 @@ async function checkAuthentication() {
   const token = localStorage.getItem('ADMIN_TOKEN') || '';
   if (token) {
     const inputHash = await hashPassword(token + 'wcb_salt_2026');
-    const validHash = await hashPassword('WeCareEnvironment_5854' + 'wcb_salt_2026');
+    const validHash = await hashPassword('adminbidar5854@' + 'wcb_salt_2026');
     if (inputHash === validHash) {
       loginModal.classList.add('hidden');
       
@@ -119,7 +119,7 @@ loginForm.addEventListener('submit', async (e) => {
   }
 
   const inputHash = await hashPassword(token + 'wcb_salt_2026');
-  const validHash = await hashPassword('WeCareEnvironment_5854' + 'wcb_salt_2026');
+  const validHash = await hashPassword('adminbidar5854@' + 'wcb_salt_2026');
   
   if (inputHash === validHash) {
     localStorage.setItem('ADMIN_TOKEN', token);
@@ -242,41 +242,6 @@ async function loadDashboardData() {
         };
       }
     });
-
-    // Calculate dynamic tree and waste count
-    const treeCount = approvedList.filter(s => s.category === "Afforestation / Tree Plantation").length;
-    const wasteCount = approvedList.filter(s => s.category === "Waste & Plastic Eradication").length;
-
-    const totalTrees = treeCount * 50;
-    const totalWasteKg = wasteCount * 150;
-
-    // Update Text and Progress bar width style
-    if (statTreesText) statTreesText.textContent = totalTrees.toLocaleString();
-    if (statTreesBar) {
-      const treeProgress = Math.min((totalTrees / 1000) * 100, 100);
-      statTreesBar.style.width = `${treeProgress}%`;
-    }
-
-    if (statWasteText) statWasteText.textContent = `${totalWasteKg.toLocaleString()} kg`;
-    if (statWasteBar) {
-      const wasteProgress = Math.min((totalWasteKg / 5000) * 100, 100);
-      statWasteBar.style.width = `${wasteProgress}%`;
-    }
-
-    // Populate Activity Center logs
-    renderEventFeed(approvedList);
-
-  } catch (err) {
-    console.error("Dashboard statistics loading failed:", err);
-    if (activityFeedContainer) {
-      activityFeedContainer.innerHTML = `
-        <div class="py-12 text-center text-error font-semibold">
-          Error loading command logs: ${err.message || 'Database error.'}
-        </div>
-      `;
-    }
-  }
-}
 
     // Calculate dynamic tree and waste count
     const treeCount = approvedList.filter(s => s.category === "Afforestation / Tree Plantation").length;

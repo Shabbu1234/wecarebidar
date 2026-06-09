@@ -18,6 +18,11 @@ const moderationWorkspace = document.getElementById('moderationWorkspace');
 const emptyState = document.getElementById('emptyState');
 
 const reviewVideo = document.getElementById('reviewVideo');
+const reviewVideoIframe = document.getElementById('reviewVideoIframe');
+const videoLoadingSpinner = document.getElementById('videoLoadingSpinner');
+const videoErrorFallback = document.getElementById('videoErrorFallback');
+const btnOpenExternal = document.getElementById('btnOpenExternal');
+const btnPermanentOpen = document.getElementById('btnPermanentOpen');
 const reviewCategory = document.getElementById('reviewCategory');
 const reviewTitle = document.getElementById('reviewTitle');
 const reviewDescription = document.getElementById('reviewDescription');
@@ -73,11 +78,18 @@ function showToast(message, type = 'success') {
 }
 
 // 2. Authentication Check
+async function hashPassword(str) {
+  const msgBuffer = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function checkAuthentication() {
   const token = localStorage.getItem('ADMIN_TOKEN') || '';
   if (token) {
     const inputHash = await hashPassword(token + 'wcb_salt_2026');
-    const validHash = await hashPassword('WeCareEnvironment_5854' + 'wcb_salt_2026');
+    const validHash = await hashPassword('adminbidar5854@' + 'wcb_salt_2026');
     if (inputHash === validHash) {
       loginModal.classList.add('hidden');
       
@@ -108,17 +120,8 @@ loginForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  // Secure password check
-  const ADMIN_PASS_HASH = '8e7d3f2a1b9c4e5f6d7a8b9c0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9';
-  async function hashPassword(str) {
-    const msgBuffer = new TextEncoder().encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
   const inputHash = await hashPassword(token + 'wcb_salt_2026');
-  const validHash = await hashPassword('WeCareEnvironment_5854' + 'wcb_salt_2026');
+  const validHash = await hashPassword('adminbidar5854@' + 'wcb_salt_2026');
   
   if (inputHash === validHash) {
     localStorage.setItem('ADMIN_TOKEN', token);
@@ -140,11 +143,24 @@ if (togglePasswordBtn && adminTokenInput) {
 }
 
 function logout() {
+  if (window.videoLoadTimeout) {
+    clearTimeout(window.videoLoadTimeout);
+    window.videoLoadTimeout = null;
+  }
   localStorage.removeItem('ADMIN_TOKEN');
   loginModal.classList.remove('hidden');
   moderationWorkspace.style.display = 'none';
   emptyState.style.display = 'block';
   reviewVideo.src = '';
+  reviewVideo.style.display = 'none';
+  if (reviewVideoIframe) {
+    reviewVideoIframe.src = '';
+    reviewVideoIframe.style.display = 'none';
+  }
+  if (videoErrorFallback) {
+    videoErrorFallback.style.display = 'none';
+  }
+  if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'flex';
   pendingQueue = [];
 }
 
@@ -247,10 +263,21 @@ async function loadPendingSubmissions() {
 }
 
 function showEmptyState() {
+  if (window.videoLoadTimeout) {
+    clearTimeout(window.videoLoadTimeout);
+    window.videoLoadTimeout = null;
+  }
   currentItem = null;
   moderationWorkspace.style.display = 'none';
   emptyState.style.display = 'block';
   reviewVideo.src = '';
+  if (reviewVideoIframe) {
+    reviewVideoIframe.src = '';
+    reviewVideoIframe.style.display = 'none';
+  }
+  if (videoErrorFallback) {
+    videoErrorFallback.style.display = 'none';
+  }
 }
 
 function formatTimeAgo(dateString) {
@@ -279,8 +306,139 @@ function showSubmission(submission) {
   reviewDescription.textContent = submission.user_description || "No description provided.";
   reviewLocation.textContent = submission.location || "Bidar Fort Zone";
   reviewSubmittedDate.textContent = formatTimeAgo(submission.created_at);
-  reviewVideo.src = submission.video_url;
+  // -------------------------------------------------------
+  // VIDEO PLAYER LOGIC
+  // Handles local dev transcode proxy (for Chrome H.265 HEVC compatibility)
+  // and direct Pixeldrain playback + iframe fallback on deployed sites.
+  // -------------------------------------------------------
+  const isCloudinary = (submission.video_url || '').includes('cloudinary.com');
   
+  // Create transformed URL for Cloudinary to force H.264 video format transcoding
+  let transformedVideoUrl = submission.video_url || '';
+  if (isCloudinary) {
+    if (transformedVideoUrl.includes('video/upload/') && !transformedVideoUrl.includes('vc_h264,f_mp4/')) {
+      transformedVideoUrl = transformedVideoUrl.replace('video/upload/', 'video/upload/vc_h264,f_mp4/');
+    }
+    const urlParts = transformedVideoUrl.split('.');
+    if (urlParts.length > 1) {
+      urlParts[urlParts.length - 1] = 'mp4';
+      transformedVideoUrl = urlParts.join('.');
+    }
+  }
+
+  const pdFileId = isCloudinary ? null : (submission.pixeldrain_file_id ||
+    (submission.video_url || '').match(/\/api\/(?:stream|transcode)-video\/([a-zA-Z0-9_-]+)/)?.[1] ||
+    (submission.video_url || '').match(/pixeldrain\.(?:com|net)\/api\/file\/([a-zA-Z0-9_-]+)/)?.[1]);
+
+  if (btnPermanentOpen) {
+    btnPermanentOpen.href = (pdFileId && !isCloudinary) ? `https://pixeldrain.net/u/${pdFileId}` : (transformedVideoUrl || '#');
+  }
+
+  // Show loading spinner
+  if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'flex';
+  reviewVideo.style.display = 'none';
+  if (reviewVideoIframe) {
+    reviewVideoIframe.style.display = 'none';
+    reviewVideoIframe.src = '';
+  }
+  if (videoErrorFallback) {
+    videoErrorFallback.style.display = 'none';
+  }
+
+  // Setup video events for robust handling
+  const clearLoadTimeout = () => {
+    if (window.videoLoadTimeout) {
+      clearTimeout(window.videoLoadTimeout);
+      window.videoLoadTimeout = null;
+    }
+  };
+
+  reviewVideo.onplaying = () => {
+    clearLoadTimeout();
+    if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'none';
+  };
+  
+  reviewVideo.onloadedmetadata = () => {
+    clearLoadTimeout();
+    if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'none';
+  };
+
+  reviewVideo.oncanplay = () => {
+    clearLoadTimeout();
+    if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'none';
+  };
+
+  reviewVideo.onloadeddata = () => {
+    clearLoadTimeout();
+    if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'none';
+  };
+
+  // If the video fails to load, show external fallback card
+  reviewVideo.onerror = () => {
+    clearLoadTimeout();
+    console.warn("HTML5 Video playback failed. Showing fallback external link...");
+    reviewVideo.style.display = 'none';
+    if (videoErrorFallback) {
+      if (btnOpenExternal) {
+        btnOpenExternal.href = (pdFileId && !isCloudinary) ? `https://pixeldrain.net/u/${pdFileId}` : (transformedVideoUrl || '#');
+      }
+      videoErrorFallback.style.display = 'flex';
+    }
+    if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'none';
+  };
+
+  // Set a backup loading timeout (5 seconds) to handle stalls/CORS blocks
+  clearLoadTimeout();
+  window.videoLoadTimeout = setTimeout(() => {
+    if (videoLoadingSpinner && videoLoadingSpinner.style.display !== 'none') {
+      console.warn("Video load timeout reached (5s). Showing fallback external link...");
+      reviewVideo.style.display = 'none';
+      if (videoErrorFallback) {
+        if (btnOpenExternal) {
+          btnOpenExternal.href = (pdFileId && !isCloudinary) ? `https://pixeldrain.net/u/${pdFileId}` : (transformedVideoUrl || '#');
+        }
+        videoErrorFallback.style.display = 'flex';
+      }
+      if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'none';
+    }
+  }, 5000);
+
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+  if (pdFileId) {
+    // If local, use the ffmpeg transcode proxy
+    // If remote, use the direct raw file stream from Pixeldrain
+    const videoSourceUrl = isLocalhost 
+      ? `/api/transcode-video/${pdFileId}` 
+      : `https://pixeldrain.net/api/file/${pdFileId}`;
+
+    reviewVideo.pause();
+    reviewVideo.removeAttribute('src');
+    reviewVideo.load();
+
+    reviewVideo.src = videoSourceUrl;
+    reviewVideo.style.display = 'block';
+    reviewVideo.load();
+    reviewVideo.play().catch(err => {
+      console.log('Autoplay blocked or load failed:', err.message);
+      if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'none';
+    });
+  } else {
+    // Fallback: use video_url directly
+    const directUrl = transformedVideoUrl || '';
+    reviewVideo.pause();
+    reviewVideo.removeAttribute('src');
+    reviewVideo.load();
+
+    reviewVideo.src = directUrl;
+    reviewVideo.style.display = 'block';
+    reviewVideo.load();
+    reviewVideo.play().catch(err => {
+      console.log('Autoplay blocked or load failed:', err.message);
+      if (videoLoadingSpinner) videoLoadingSpinner.style.display = 'none';
+    });
+  }
+
   // Set contributor details
   const name = submission.profiles?.full_name || submission.profiles?.phone || submission.profiles?.email || 'Anonymous Rebel';
   reviewContributorName.textContent = name;
@@ -297,7 +455,6 @@ function showSubmission(submission) {
   btnApprove.disabled = true;
   moderationFeedback.value = '';
 
-  reviewVideo.load();
   buildTimelineLogs(submission, seedScore);
 }
 
@@ -334,6 +491,36 @@ btnApprove.addEventListener('click', async () => {
   btnApprove.textContent = "Processing Approval...";
 
   try {
+    // 1. Trigger the Activepieces/AntGvity Webhook for social distribution
+    const bucketFileName = extractFilename(currentItem.video_url) || currentItem.pixeldrain_file_id || currentItem.id;
+    const payload = {
+      videoId: currentItem.id,
+      videoUrl: currentItem.video_url || "",
+      user_description: currentItem.user_description || "",
+      bucketFileName: bucketFileName
+    };
+
+    console.log("Triggering AntGvity webhook with payload:", payload);
+
+    try {
+      const response = await fetch(antgvityWebhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        console.warn(`Webhook responded with status: ${response.status}`);
+      } else {
+        console.log("Webhook triggered successfully!");
+      }
+    } catch (webhookErr) {
+      // Log error but don't block Firestore update, in case webhook is offline but DB state should update
+      console.error("AntGvity webhook execution failed:", webhookErr);
+    }
+
+    // 2. Update Firestore document status
     await db.collection('submissions').doc(currentItem.id).update({
       status: 'approved'
     });
@@ -358,14 +545,12 @@ btnReject.addEventListener('click', async () => {
   btnReject.disabled = true;
 
   try {
-    await db.collection('submissions').doc(currentItem.id).delete();
+    // Set status to 'rejected_delete' so backend script can delete the video from Cloudinary/Firebase and delete the document.
+    await db.collection('submissions').doc(currentItem.id).update({
+      status: 'rejected_delete'
+    });
 
-    const filename = extractFilename(currentItem.video_url);
-    if (filename) {
-      await storage.ref().child(`temporary-videos/${filename}`).delete();
-    }
-
-    showToast('Submission permanently rejected and purged.');
+    showToast('Submission queued for permanent deletion and media purge.');
     loadPendingSubmissions();
 
   } catch (err) {
@@ -394,12 +579,7 @@ btnRevision.addEventListener('click', async () => {
       user_description: `[REVISION REQUESTED: ${feedback}] ` + currentItem.user_description
     });
 
-    const filename = extractFilename(currentItem.video_url);
-    if (filename) {
-      await storage.ref().child(`temporary-videos/${filename}`).delete();
-    }
-
-    showToast('Revision request logged. Video cleared.');
+    showToast('Revision request logged. Video queued for storage purge.');
     loadPendingSubmissions();
 
   } catch (err) {

@@ -31,21 +31,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: 📦 Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install supabase requests
-          pip install langchain-openai
-          pip install browser-use
+          pip install requests langchain-openai browser-use
           playwright install --with-deps chromium
 
       - name: 🚀 Run Auto Publisher (Social Upload & Cleanup)
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CLOUDINARY_CLOUD_NAME: "dqm62mqbs"
+          CLOUDINARY_API_KEY: "974397986324117"
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          PIXELDRAIN_API_KEY: ${{ secrets.PIXELDRAIN_API_KEY }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" python auto_publisher.py
 

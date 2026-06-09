@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/Shabbu1234/wecarebidar/issues"
   },
-  "homepage": "https://github.com/Shabbu1234/wecarebidar#readme"
+  "homepage": "https://github.com/Shabbu1234/wecarebidar#readme",
+  "dependencies": {
+    "firebase": "^12.14.0"
+  }
 }

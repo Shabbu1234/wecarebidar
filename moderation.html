@@ -314,17 +314,55 @@
                 <div class="lg:col-span-2 space-y-8">
                     <!-- Video Player Container -->
                     <div class="glass-panel rounded-xl overflow-hidden relative shadow-[0px_20px_50px_rgba(0,0,0,0.04)] group">
-                        <div class="aspect-video bg-inverse-surface relative flex items-center justify-center">
-                            <video id="reviewVideo" class="w-full h-full object-cover" controls autoplay loop muted>
+                        <div class="relative bg-black" style="aspect-ratio: 16/9;">
+
+                            <!-- Pixeldrain Embed Iframe (primary - handles all codecs including H.265) -->
+                            <iframe
+                                id="reviewVideoIframe"
+                                class="absolute inset-0 w-full h-full border-0"
+                                allowfullscreen
+                                allow="autoplay; fullscreen"
+                                style="display:none; background:#000;"
+                            ></iframe>
+
+                            <!-- Fallback HTML5 video (for non-Pixeldrain sources) -->
+                            <video id="reviewVideo" class="absolute inset-0 w-full h-full" controls autoplay loop playsinline style="display:none; background:#000;">
                                 Your browser does not support HTML5 video playback.
                             </video>
-                            
+
+                            <!-- Loading Spinner (shown while video loads) -->
+                            <div id="videoLoadingSpinner" class="absolute inset-0 flex flex-col items-center justify-center gap-3" style="background:#000;">
+                                <div class="w-10 h-10 border-4 border-primary-fixed/30 border-t-primary-fixed rounded-full animate-spin"></div>
+                                <span class="text-primary-fixed text-xs font-bold tracking-widest uppercase">Loading Preview...</span>
+                            </div>
+
+                            <!-- Codec/Playback Error Fallback Card -->
+                            <div id="videoErrorFallback" class="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center bg-zinc-950 text-white" style="display: none;">
+                                <span class="material-symbols-outlined text-amber-500 text-5xl">warning</span>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-sm text-zinc-100">Playback Unavailable in Browser</h4>
+                                    <p class="text-xs text-zinc-400 max-w-sm">This video uses a codec (like HEVC) or is blocked from embedding by Pixeldrain's security policy.</p>
+                                </div>
+                                <a id="btnOpenExternal" href="#" target="_blank" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-amber-950 font-bold text-xs rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-amber-600/20">
+                                    <span class="material-symbols-outlined text-sm">open_in_new</span>
+                                    Open Video in New Tab
+                                </a>
+                            </div>
+
                             <!-- Status Badge -->
-                            <div class="absolute top-4 right-4 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full font-label-caps text-label-caps flex items-center gap-1 shadow-lg font-bold text-[10px]">
+                            <div class="absolute top-4 right-4 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full font-label-caps text-label-caps flex items-center gap-1 shadow-lg font-bold text-[10px] z-10">
                                 <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">pending_actions</span>
                                 PENDING REVIEW
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Permanent external link button for cases where browser plays audio but video is black -->
+                    <div class="flex justify-end">
+                        <a id="btnPermanentOpen" href="#" target="_blank" class="px-4 py-2.5 border border-outline-variant hover:bg-surface-dim text-on-surface-variant font-bold text-[11px] rounded-lg transition-all flex items-center gap-1.5 shadow-sm bg-white/70 backdrop-blur-sm hover:scale-[1.02]">
+                            <span class="material-symbols-outlined text-sm">open_in_new</span>
+                            Open Video in New Tab (If video screen is black/blank)
+                        </a>
                     </div>
                     
                     <!-- Submission Details Card -->
