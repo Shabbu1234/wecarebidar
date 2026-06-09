@@ -1,16 +1,18 @@
 // =======================================================
-# WeCareBidar - FIREBASE CONFIGURATION & INITIALIZATION
-# =======================================================
+// WeCareBidar - FIREBASE CONFIGURATION & INITIALIZATION
+// =======================================================
 
 // 1. Default Firebase Configurations (Use local storage if set)
 const DEFAULT_FIREBASE_CONFIG = {
-  apiKey: "AIzaSyFakeKeyHereForDevelopmentOnly_12345",
-  authDomain: "wecarebidar-dev.firebaseapp.com",
-  projectId: "wecarebidar-dev",
-  storageBucket: "wecarebidar-dev.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:1234567890abcdef"
+  apiKey: "AIzaSyDjlhHUc7rGgq4MuxJoeNc_-lgzhHO2fMY",
+  authDomain: "wecarebidar-79a83.firebaseapp.com",
+  projectId: "wecarebidar-79a83",
+  storageBucket: "wecarebidar-79a83.firebasestorage.app",
+  messagingSenderId: "312661221535",
+  appId: "1:312661221535:web:9807b2d0b6ac1fc13502aa",
+  measurementId: "G-LZRX1JM5D4"
 };
+
 
 const firebaseConfig = {
   apiKey: localStorage.getItem('FIREBASE_API_KEY') || DEFAULT_FIREBASE_CONFIG.apiKey,
@@ -33,3 +35,10 @@ if (typeof firebase !== 'undefined') {
 } else {
   console.warn("⚠️ Firebase SDK not loaded yet. Make sure script tags are included in HTML.");
 }
+
+// 2. Cloudinary configuration for direct unsigned uploads
+const cloudinaryConfig = {
+  cloudName: localStorage.getItem('CLOUDINARY_CLOUD_NAME') || 'dqm62mqbs',
+  uploadPreset: localStorage.getItem('CLOUDINARY_UPLOAD_PRESET') || 'wecare_preset'
+};
+
