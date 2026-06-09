@@ -42,7 +42,10 @@ original_with_structured_output = ChatOpenAI.with_structured_output
 def patched_with_structured_output(self, schema, *, method="auto", include_raw=False, **kwargs):
     api_base = str(getattr(self, "openai_api_base", "") or "")
     model_name = str(getattr(self, "model_name", "") or "")
-    if "nvidia" in api_base.lower() or "nvidia" in model_name.lower():
+    is_nvidia = "nvidia" in api_base.lower() or "nvidia" in model_name.lower()
+    print(f"PATCH_DEBUG: api_base='{api_base}', model_name='{model_name}', is_nvidia={is_nvidia}, original_method='{method}'", flush=True)
+    if is_nvidia:
+        print("PATCH_DEBUG: Forcing method='json_mode' for NVIDIA model", flush=True)
         return original_with_structured_output(self, schema, method="json_mode", include_raw=include_raw, **kwargs)
     return original_with_structured_output(self, schema, method=method, include_raw=include_raw, **kwargs)
 ChatOpenAI.with_structured_output = patched_with_structured_output
