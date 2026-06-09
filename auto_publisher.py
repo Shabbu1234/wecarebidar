@@ -1,7 +1,41 @@
 import os
+import sys
+import subprocess
 import asyncio
 import logging
 import requests
+
+# Auto-rerun using Python 3.11 if launched under Python 3.14+ (due to NumPy compatibility crashes on Windows under Python 3.14)
+if sys.version_info >= (3, 14):
+    if not os.environ.get("WCB_PYTHON_RERUN"):
+        os.environ["WCB_PYTHON_RERUN"] = "1"
+        try:
+            # Re-execute the script using Python 3.11 via the 'py' launcher
+            result = subprocess.run(["py", "-3.11"] + sys.argv)
+            sys.exit(result.returncode)
+        except Exception as err:
+            logging.error(f"Failed to auto-rerun script under Python 3.11: {err}")
+
+# Monkeypatch ChatOpenAI.__setattr__ to bypass Pydantic v2 validation errors in browser-use
+from langchain_openai import ChatOpenAI
+original_setattr = ChatOpenAI.__setattr__
+def patched_setattr(self, name, value):
+    try:
+        original_setattr(self, name, value)
+    except ValueError:
+        self.__dict__[name] = value
+ChatOpenAI.__setattr__ = patched_setattr
+
+# Define a property for provider so that accessing llm.provider doesn't raise AttributeError in Pydantic v2
+@property
+def provider_prop(self):
+    return self.__dict__.get("_provider", "openai")
+
+@provider_prop.setter
+def provider_prop(self, value):
+    self.__dict__["_provider"] = value
+
+ChatOpenAI.provider = provider_prop
 
 # Load environment variables manually from .env if present
 def load_env():
@@ -67,16 +101,61 @@ async def publish_video(video_path: str, title: str, description: str):
         logger.error("No valid NVIDIA_API_KEY or OPENAI_API_KEY found in environment. Cannot initialize AI agent.")
         raise ValueError("AI API key missing")
     
+    # Set provider attribute dynamically for browser-use SDK compatibility
+    llm.provider = "openai"
+    
+    # Initialize the Browser config dynamically
+    is_github_actions = os.environ.get("GITHUB_ACTIONS") == "true"
+    from browser_use import Agent, Browser
+
+    if is_github_actions:
+        logger.info("Running on GitHub Actions. Launching clean headless browser...")
+        browser = Browser(headless=True)
+    else:
+        # Local execution: use user's persistent Google Chrome context so they are logged in
+        logger.info("Running locally. Launching persistent Google Chrome context...")
+        user_data_dir = r"C:\Users\PC\AppData\Local\Google\Chrome\User Data"
+        chrome_path = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+        
+        # Verify if paths exist, otherwise fallback to default browser
+        if os.path.exists(user_data_dir) and os.path.exists(chrome_path):
+            try:
+                browser = Browser(
+                    user_data_dir=user_data_dir,
+                    executable_path=chrome_path,
+                    headless=False,
+                    args=["--start-maximized"],
+                    no_viewport=True
+                )
+            except Exception as e:
+                logger.error(f"Failed to launch Chrome with persistent user data: {e}")
+                logger.warning("CRITICAL: Google Chrome is likely running and locking your user profile directory.")
+                logger.warning("To use auto-login, please close all Google Chrome windows and run this script again.")
+                logger.warning("Falling back to a clean headful browser context for this run...")
+                browser = Browser(headless=False)
+        else:
+            logger.warning("Local Chrome or user profile path not found. Falling back to default headful browser...")
+            browser = Browser(headless=False)
+
     # Initialize the browser-use agent
     agent = Agent(
         task=task_prompt,
         llm=llm,
+        browser=browser,
+        directly_open_url=False
     )
     
     # Run the agent
     logger.info("Starting browser-use agent for social publishing...")
     result = await agent.run()
     logger.info(f"Agent finished execution: {result}")
+
+    # Check if the agent finished successfully
+    if not result.is_successful():
+        err_msg = ""
+        if hasattr(result, 'errors') and result.errors():
+            err_msg = f" Errors: {result.errors()}"
+        raise RuntimeError(f"Browser-use agent failed to publish the video successfully.{err_msg}")
 
 def delete_cloudinary_video(public_id: str, cloud_name: str, api_key: str, api_secret: str):
     import time
@@ -229,12 +308,16 @@ async def main():
             try:
                 pixeldrain_file_id = sub.get("pixeldrain_file_id")
                 cloudinary_public_id = sub.get("cloudinary_public_id")
-                if pixeldrain_file_id:
-                    logger.info(f"Purging video from Pixeldrain: {pixeldrain_file_id}...")
-                    delete_pixeldrain_file(pixeldrain_file_id, PIXELDRAIN_API_KEY)
-                elif cloudinary_public_id:
-                    logger.info(f"Purging video from Cloudinary: {cloudinary_public_id}...")
-                    delete_cloudinary_video(cloudinary_public_id, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)
+                
+                is_cloudinary = video_url and "cloudinary.com" in video_url
+                if is_cloudinary:
+                    if cloudinary_public_id:
+                        logger.info(f"Purging video from Cloudinary: {cloudinary_public_id}...")
+                        delete_cloudinary_video(cloudinary_public_id, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)
+                else:
+                    if pixeldrain_file_id:
+                        logger.info(f"Purging video from Pixeldrain: {pixeldrain_file_id}...")
+                        delete_pixeldrain_file(pixeldrain_file_id, PIXELDRAIN_API_KEY)
 
                 if status == "rejected_delete":
                     logger.info(f"Deleting submission document {sub_id} from database...")
@@ -297,12 +380,16 @@ async def main():
             # 4. Zero-Residue: Cleanup Pixeldrain or Cloudinary
             pixeldrain_file_id = sub.get("pixeldrain_file_id")
             cloudinary_public_id = sub.get("cloudinary_public_id")
-            if pixeldrain_file_id:
-                logger.info(f"Purging video from Pixeldrain: {pixeldrain_file_id}...")
-                delete_pixeldrain_file(pixeldrain_file_id, PIXELDRAIN_API_KEY)
-            elif cloudinary_public_id:
-                logger.info(f"Purging video from Cloudinary: {cloudinary_public_id}...")
-                delete_cloudinary_video(cloudinary_public_id, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)
+            
+            is_cloudinary = video_url and "cloudinary.com" in video_url
+            if is_cloudinary:
+                if cloudinary_public_id:
+                    logger.info(f"Purging video from Cloudinary: {cloudinary_public_id}...")
+                    delete_cloudinary_video(cloudinary_public_id, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)
+            else:
+                if pixeldrain_file_id:
+                    logger.info(f"Purging video from Pixeldrain: {pixeldrain_file_id}...")
+                    delete_pixeldrain_file(pixeldrain_file_id, PIXELDRAIN_API_KEY)
             
             # 5. Zero-Residue: Clear video fields in database
             logger.info("Clearing video fields in database to finalize zero-residue footprint...")
